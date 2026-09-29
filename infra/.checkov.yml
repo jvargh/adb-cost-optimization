@@ -1,0 +1,10 @@
+framework:
+  - bicep
+compact: true
+skip-check:
+  - CKV2_AZURE_48
+  - CKV_AZURE_158
+  - CKV_AZURE_35
+  - CKV_AZURE_59
+  - CKV_AZURE_43
+  - CKV_AZURE_206

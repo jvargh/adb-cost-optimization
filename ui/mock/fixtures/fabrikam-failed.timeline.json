@@ -1,0 +1,457 @@
+{
+  "events": [
+    {
+      "message": "Running the static read-only scanner over all assessment scripts",
+      "offsetMs": 0,
+      "phase": "preflight",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "AssessmentReadOnlySafety=PASS (34 PowerShell scripts parsed, 0 mutating calls found)",
+      "offsetMs": 600,
+      "type": "log"
+    },
+    {
+      "level": "info",
+      "message": "Read-only boundary confirmed: Azure GET plus approved Resource Graph and Cost Management POST only.",
+      "offsetMs": 1100,
+      "type": "log"
+    },
+    {
+      "message": "Collecting Azure and Databricks evidence",
+      "offsetMs": 1500,
+      "phase": "collecting",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure inventory...",
+      "offsetMs": 1800,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Azure inventory: Reader is not assigned on rg-analytics-archive; that group was skipped.",
+      "offsetMs": 2150,
+      "type": "log"
+    },
+    {
+      "offsetMs": 2300,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:01.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 148,
+        "limitations": [
+          "Reader is not assigned on rg-analytics-archive; that group was skipped."
+        ],
+        "name": "Azure inventory",
+        "outputs": [
+          "raw/azure/resource-inventory.ndjson",
+          "raw/azure/databricks-workspaces.json"
+        ],
+        "startedAtUtc": "2026-09-26T21:49:50.874000Z",
+        "status": "partial"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure policy and diagnostics...",
+      "offsetMs": 2550,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Azure policy and diagnostics: Access connectors and user-assigned identities do not support diagnostic settings.",
+      "offsetMs": 2900,
+      "type": "log"
+    },
+    {
+      "offsetMs": 3050,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:23.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 1042,
+        "limitations": [
+          "Access connectors and user-assigned identities do not support diagnostic settings."
+        ],
+        "name": "Azure policy and diagnostics",
+        "outputs": [
+          "raw/azure/policy-inventory.ndjson",
+          "raw/azure/diagnostic-settings.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:01.874000Z",
+        "status": "partial"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure Cost Management...",
+      "offsetMs": 3300,
+      "type": "log"
+    },
+    {
+      "level": "error",
+      "message": "403 Forbidden: the signed-in principal does not have Cost Management Reader on /subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93.",
+      "offsetMs": 3650,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Azure Cost Management: No cost evidence was collected. Cost-dependent analysis was not attempted.",
+      "offsetMs": 3850,
+      "type": "log"
+    },
+    {
+      "offsetMs": 4000,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:52.874000Z",
+        "domain": "azure",
+        "error": "403 Forbidden: the signed-in principal does not have Cost Management Reader on /subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93.",
+        "itemCount": 0,
+        "limitations": [
+          "No cost evidence was collected. Cost-dependent analysis was not attempted."
+        ],
+        "name": "Azure Cost Management",
+        "outputs": [
+          "raw/azure/cost-management.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:23.874000Z",
+        "status": "failed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure budgets and commitments...",
+      "offsetMs": 4250,
+      "type": "log"
+    },
+    {
+      "level": "error",
+      "message": "403 Forbidden: budget enumeration requires Cost Management Reader.",
+      "offsetMs": 4600,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Azure budgets and commitments: No cost evidence was collected. Cost-dependent analysis was not attempted.",
+      "offsetMs": 4800,
+      "type": "log"
+    },
+    {
+      "offsetMs": 4950,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:56.874000Z",
+        "domain": "azure",
+        "error": "403 Forbidden: budget enumeration requires Cost Management Reader.",
+        "itemCount": 0,
+        "limitations": [
+          "No cost evidence was collected. Cost-dependent analysis was not attempted."
+        ],
+        "name": "Azure budgets and commitments",
+        "outputs": [
+          "raw/azure/budgets-commitments.json"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:52.874000Z",
+        "status": "failed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure compute quotas...",
+      "offsetMs": 5200,
+      "type": "log"
+    },
+    {
+      "offsetMs": 5550,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:04.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 486,
+        "limitations": [],
+        "name": "Azure compute quotas",
+        "outputs": [
+          "raw/azure/compute-quotas.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:56.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks workspace [7405608792310779]...",
+      "offsetMs": 5800,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks workspace [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 6149,
+      "type": "log"
+    },
+    {
+      "offsetMs": 6300,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:11.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks workspace [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/workspace.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:05.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks billing [7405608792310779]...",
+      "offsetMs": 6550,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks billing [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 6899,
+      "type": "log"
+    },
+    {
+      "offsetMs": 7050,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:15.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks billing [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/billing.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:09.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks compute [7405608792310779]...",
+      "offsetMs": 7300,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks compute [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 7649,
+      "type": "log"
+    },
+    {
+      "offsetMs": 7800,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:19.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks compute [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/compute.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:13.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks workloads [7405608792310779]...",
+      "offsetMs": 8050,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks workloads [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 8400,
+      "type": "log"
+    },
+    {
+      "offsetMs": 8550,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:23.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks workloads [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/workloads.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:17.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks SQL [7405608792310779]...",
+      "offsetMs": 8800,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks SQL [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 9150,
+      "type": "log"
+    },
+    {
+      "offsetMs": 9300,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:27.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks SQL [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/sql.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:21.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks Unity Catalog [7405608792310779]...",
+      "offsetMs": 9550,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks Unity Catalog [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 9900,
+      "type": "log"
+    },
+    {
+      "offsetMs": 10050,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:31.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks Unity Catalog [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/unity-catalog.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:25.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks governance [7405608792310779]...",
+      "offsetMs": 10300,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks governance [7405608792310779]: Collection stopped after the cost baseline failed.",
+      "offsetMs": 10650,
+      "type": "log"
+    },
+    {
+      "offsetMs": 10800,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:35.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "Collection stopped after the cost baseline failed."
+        ],
+        "name": "Databricks governance [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/governance.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:29.874000Z",
+        "status": "pending telemetry",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks Spark deep dive [7405608792310779]...",
+      "offsetMs": 11050,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks Spark deep dive [7405608792310779]: No deep-dive targets were supplied.",
+      "offsetMs": 11400,
+      "type": "log"
+    },
+    {
+      "offsetMs": 11550,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:39.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "No deep-dive targets were supplied."
+        ],
+        "name": "Databricks Spark deep dive [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/spark-deep-dive.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:33.874000Z",
+        "status": "skipped",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "error",
+      "message": "No cost baseline was collected. Cost-dependent analysis cannot run.",
+      "offsetMs": 11800,
+      "type": "log"
+    },
+    {
+      "message": "Azure Cost Management failed with 403 Forbidden. Grant Cost Management Reader on the target subscription and re-run.",
+      "offsetMs": 12200,
+      "type": "failed"
+    }
+  ],
+  "runId": "adb-cost-assessment-20260926T031755204Z-4f80c113"
+}

@@ -1,0 +1,27 @@
+{
+  "required": [
+    "BusinessUnit",
+    "Project",
+    "Environment",
+    "CostCenter",
+    "Owner"
+  ],
+  "aliases": {
+    "business_unit": "BusinessUnit",
+    "businessunit": "BusinessUnit",
+    "project_name": "Project",
+    "env": "Environment",
+    "cost_center": "CostCenter",
+    "workload_owner": "Owner"
+  },
+  "allowedValues": {
+    "Environment": [
+      "dev",
+      "test",
+      "qa",
+      "stage",
+      "prod",
+      "workshop"
+    ]
+  }
+}

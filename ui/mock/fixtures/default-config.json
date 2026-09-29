@@ -1,0 +1,75 @@
+{
+  "analysis": {
+    "collectorTimeoutSeconds": 1800,
+    "endUtc": "2026-09-26T00:00:00Z",
+    "maxPages": 100,
+    "pageSize": 1000,
+    "requestTimeoutSeconds": 120,
+    "retryBaseSeconds": 2,
+    "retryCount": 3,
+    "startUtc": "2026-08-26T00:00:00Z",
+    "timeZone": "UTC"
+  },
+  "assessmentId": "adb-cost-assessment",
+  "azure": {
+    "costBasis": [
+      "ActualCost",
+      "AmortizedCost"
+    ],
+    "costScope": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93",
+    "currency": "USD",
+    "includeManagementGroups": false,
+    "resourceGroups": [
+      "rg-databricks-platform-prod"
+    ],
+    "subscriptions": [
+      "463a82d4-1896-4332-aeeb-618ee5a5aa93"
+    ],
+    "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b"
+  },
+  "customerId": "contoso",
+  "databricks": {
+    "allowSqlWarehouseAutoStart": false,
+    "deepDiveJobRunIds": [],
+    "deepDiveTableNames": [],
+    "includeIdentities": false,
+    "includeNotebookPaths": false,
+    "includeQueryText": false,
+    "workspaces": [
+      {
+        "include": true,
+        "name": "dbw-platform-prod",
+        "resourceGroup": "rg-databricks-platform-prod",
+        "workspaceId": "7405608792310779",
+        "workspaceUrl": "adb-7405608792310779.79.azuredatabricks.net"
+      }
+    ]
+  },
+  "outputs": {
+    "retainRaw": true,
+    "root": "./assessment/output",
+    "writeCsv": true,
+    "writeJson": true,
+    "writeMarkdown": true
+  },
+  "redaction": {
+    "hashIdentities": true,
+    "hashNotebookPaths": true,
+    "hashTableNames": false,
+    "omitQueryText": true,
+    "saltEnvironmentVariable": "ADB_ASSESSMENT_HASH_SALT"
+  },
+  "thresholds": {
+    "continuousStreamingIdlePercent": 50.0,
+    "idleComputePercent": 20.0,
+    "interactiveAutoTerminationMinutes": 60,
+    "jobFailureRatePercent": 5.0,
+    "legacyRuntimeMajorVersionsBehind": 2,
+    "materialMonthlyCost": 100.0,
+    "poolIdleHours": 24.0,
+    "smallFileBytes": 33554432,
+    "smallFilePercent": 30.0,
+    "sqlQueueP95Seconds": 30.0,
+    "unattributedCostPercent": 5.0
+  }
+}

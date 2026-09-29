@@ -1,0 +1,706 @@
+{
+  "attribution": {
+    "attributedResourceCount": 0,
+    "attributedSpend": 0.0,
+    "resourceCount": 41,
+    "resourceCoveragePercent": 0.0,
+    "schemaVersion": "1.0",
+    "spendCoveragePercent": 0.0,
+    "totalSpend": 0.0
+  },
+  "benefits": {
+    "analysisWindow": {
+      "endUtc": "2026-09-26T00:00:00Z",
+      "startUtc": "2026-08-26T00:00:00Z",
+      "timeZone": "UTC"
+    },
+    "authoritativeCost": 0.0,
+    "baselineId": "adb-cost-assessment-20260926T031755204Z-4f80c113:v1",
+    "createdAtUtc": "2026-09-26T21:52:53.874000Z",
+    "currency": "USD",
+    "realizedSavings": null,
+    "reportingBasis": "ActualCost",
+    "schemaVersion": "1.0",
+    "workloadNormalization": {
+      "method": "none",
+      "reason": "No approved workload normalization factor was supplied."
+    }
+  },
+  "candidates": {
+    "analysisWindow": {
+      "endUtc": "2026-09-26T00:00:00Z",
+      "startUtc": "2026-08-26T00:00:00Z",
+      "timeZone": "UTC"
+    },
+    "candidateCount": 0,
+    "findings": [],
+    "insufficientEvidenceCount": 0,
+    "schemaVersion": "1.0"
+  },
+  "collection": [
+    {
+      "completedAtUtc": "2026-09-26T21:50:01.874000Z",
+      "domain": "azure",
+      "error": "",
+      "itemCount": 148,
+      "limitations": [
+        "Reader is not assigned on rg-analytics-archive; that group was skipped."
+      ],
+      "name": "Azure inventory",
+      "outputs": [
+        "raw/azure/resource-inventory.ndjson",
+        "raw/azure/databricks-workspaces.json"
+      ],
+      "startedAtUtc": "2026-09-26T21:49:50.874000Z",
+      "status": "partial"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:50:23.874000Z",
+      "domain": "azure",
+      "error": "",
+      "itemCount": 1042,
+      "limitations": [
+        "Access connectors and user-assigned identities do not support diagnostic settings."
+      ],
+      "name": "Azure policy and diagnostics",
+      "outputs": [
+        "raw/azure/policy-inventory.ndjson",
+        "raw/azure/diagnostic-settings.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:50:01.874000Z",
+      "status": "partial"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:50:52.874000Z",
+      "domain": "azure",
+      "error": "403 Forbidden: the signed-in principal does not have Cost Management Reader on /subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93.",
+      "itemCount": 0,
+      "limitations": [
+        "No cost evidence was collected. Cost-dependent analysis was not attempted."
+      ],
+      "name": "Azure Cost Management",
+      "outputs": [
+        "raw/azure/cost-management.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:50:23.874000Z",
+      "status": "failed"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:50:56.874000Z",
+      "domain": "azure",
+      "error": "403 Forbidden: budget enumeration requires Cost Management Reader.",
+      "itemCount": 0,
+      "limitations": [
+        "No cost evidence was collected. Cost-dependent analysis was not attempted."
+      ],
+      "name": "Azure budgets and commitments",
+      "outputs": [
+        "raw/azure/budgets-commitments.json"
+      ],
+      "startedAtUtc": "2026-09-26T21:50:52.874000Z",
+      "status": "failed"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:04.874000Z",
+      "domain": "azure",
+      "error": "",
+      "itemCount": 486,
+      "limitations": [],
+      "name": "Azure compute quotas",
+      "outputs": [
+        "raw/azure/compute-quotas.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:50:56.874000Z",
+      "status": "passed"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:11.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks workspace [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/workspace.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:05.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:15.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks billing [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/billing.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:09.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:19.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks compute [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/compute.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:13.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:23.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks workloads [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/workloads.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:17.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:27.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks SQL [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/sql.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:21.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:31.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks Unity Catalog [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/unity-catalog.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:25.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:35.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "Collection stopped after the cost baseline failed."
+      ],
+      "name": "Databricks governance [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/governance.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:29.874000Z",
+      "status": "pending telemetry",
+      "workspaceKey": "7405608792310779"
+    },
+    {
+      "completedAtUtc": "2026-09-26T21:51:39.874000Z",
+      "domain": "databricks",
+      "error": "",
+      "itemCount": 0,
+      "limitations": [
+        "No deep-dive targets were supplied."
+      ],
+      "name": "Databricks Spark deep dive [7405608792310779]",
+      "outputs": [
+        "raw/databricks/7405608792310779/spark-deep-dive.ndjson"
+      ],
+      "startedAtUtc": "2026-09-26T21:51:33.874000Z",
+      "status": "skipped",
+      "workspaceKey": "7405608792310779"
+    }
+  ],
+  "compute": [
+    {
+      "autoterminationMinutes": 0,
+      "clusterId": "0912-081455-ad31kq7b",
+      "clusterName": "shared-analytics-interactive",
+      "driverNodeTypeId": "Standard_D8ds_v5",
+      "idlePercent": 46.2,
+      "maxWorkers": 12,
+      "minWorkers": 2,
+      "nodeTypeId": "Standard_D8ds_v5",
+      "observedUptimeHours": 671.4,
+      "owner": "Platform-Team",
+      "photon": true,
+      "policyName": "prod-interactive-policy",
+      "runtime": "14.3.x-photon-scala2.12",
+      "source": "UI",
+      "spotDriver": false,
+      "state": "RUNNING",
+      "workspaceName": "dbw-platform-prod"
+    },
+    {
+      "autoterminationMinutes": 15,
+      "clusterId": "0917-020745-8bm3rrf2",
+      "clusterName": "fraud-scoring-batch",
+      "driverNodeTypeId": "Standard_L8s_v3",
+      "idlePercent": 11.4,
+      "maxWorkers": 16,
+      "minWorkers": 2,
+      "nodeTypeId": "Standard_L8s_v3",
+      "observedUptimeHours": 142.7,
+      "owner": "Fraud-Analytics",
+      "photon": true,
+      "policyName": "job-standard-policy",
+      "runtime": "15.4.x-photon-scala2.12",
+      "source": "JOB",
+      "spotDriver": true,
+      "state": "TERMINATED",
+      "workspaceName": "dbw-platform-prod"
+    }
+  ],
+  "costBreakdown": [],
+  "costDrivers": [],
+  "costTrend": [],
+  "evidenceGaps": [
+    {
+      "impact": "No cost baseline exists for this run. No cost figure, driver ranking, or optimization candidate can be produced.",
+      "requiredToUnlock": [
+        "Cost Management Reader on the target subscription"
+      ],
+      "source": "Azure Cost Management",
+      "status": "failed"
+    },
+    {
+      "impact": "Budget coverage cannot be evaluated.",
+      "requiredToUnlock": [
+        "Cost Management Reader on the target subscription"
+      ],
+      "source": "Azure budgets and commitments",
+      "status": "failed"
+    },
+    {
+      "impact": "Workspace collection did not run because the cost baseline failed first.",
+      "requiredToUnlock": [
+        "A successful Azure Cost Management collection"
+      ],
+      "source": "Databricks collectors",
+      "status": "pending telemetry"
+    }
+  ],
+  "exports": [
+    {
+      "description": "Machine-readable findings with confidence and evidence.",
+      "kind": "json",
+      "name": "Optimization candidates",
+      "relativePath": "optimization-candidates.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 1232
+    },
+    {
+      "description": "Authoritative vs collected cost with duplicate-prevention rules.",
+      "kind": "json",
+      "name": "Cost reconciliation",
+      "relativePath": "cost-reconciliation.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 929
+    },
+    {
+      "description": "Per-source and overall evidence quality scoring.",
+      "kind": "json",
+      "name": "Telemetry quality",
+      "relativePath": "telemetry-quality.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 18287
+    },
+    {
+      "description": "Per-collector status, item counts, limitations, and errors.",
+      "kind": "json",
+      "name": "Collection status",
+      "relativePath": "collection-status.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 16755
+    },
+    {
+      "description": "Included and excluded record counts proving scope isolation.",
+      "kind": "json",
+      "name": "Scope filter proof",
+      "relativePath": "scope-filter.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 867
+    },
+    {
+      "description": "Baseline for later benefits realization. Realized savings is null.",
+      "kind": "json",
+      "name": "Benefits baseline",
+      "relativePath": "benefits-baseline.json",
+      "sensitivity": "sensitive",
+      "sizeBytes": 537
+    }
+  ],
+  "manifest": {
+    "analysisWindow": {
+      "endUtc": "2026-09-26T00:00:00Z",
+      "startUtc": "2026-08-26T00:00:00Z",
+      "timeZone": "UTC"
+    },
+    "assessmentId": "adb-cost-assessment",
+    "completedAtUtc": "2026-09-26T21:50:35.874000Z",
+    "customerId": "fabrikam",
+    "outputRoot": "./assessment/output/adb-cost-assessment-20260926T214949861Z-1e4e3e10",
+    "runId": "adb-cost-assessment-20260926T031755204Z-4f80c113",
+    "schemaVersion": "1.0",
+    "scope": {
+      "resourceGroupIds": [
+        "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/rg-databricks-platform-prod",
+        "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/mrg-databricks-platform-prod"
+      ],
+      "resourceGroups": [
+        "rg-databricks-platform-prod"
+      ],
+      "subscriptionIds": [
+        "463a82d4-1896-4332-aeeb-618ee5a5aa93"
+      ],
+      "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b",
+      "workspaces": [
+        {
+          "name": "dbw-platform-prod",
+          "resourceGroup": "rg-databricks-platform-prod",
+          "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+          "workspaceId": "7405608792310779",
+          "workspaceUrl": "adb-7405608792310779.79.azuredatabricks.net"
+        }
+      ]
+    },
+    "startedAtUtc": "2026-09-26T21:49:49.874000Z",
+    "status": "failed",
+    "toolkitVersion": "0.1.0"
+  },
+  "reconciliation": {
+    "allocatedSharedCost": 0.0,
+    "authoritativeTotal": 0.0,
+    "authoritativeTotals": {},
+    "collectedTotal": 0.0,
+    "currency": "USD",
+    "currencyAggregationAllowed": true,
+    "databricksListPriceAddedToAzure": 0.0,
+    "databricksListPriceEstimate": 0.0,
+    "duplicatePrevention": {
+      "azureContainsDatabricksServiceCost": true,
+      "rule": "Serverless DBU includes infrastructure; explicit serverless VM estimates are never additive.",
+      "serverlessDbuCost": 58188.5,
+      "serverlessVmCostNotAdded": 14856.64
+    },
+    "excludedCost": 0.0,
+    "limitations": [
+      "No cost baseline could be established. Every cost figure in this run is absent, not zero."
+    ],
+    "matchedCost": 0.0,
+    "reportingBasis": "ActualCost",
+    "schemaVersion": "1.0",
+    "taxIncluded": null,
+    "unmatchedCost": 0.0,
+    "unmatchedDatabricksUsageRecords": 118,
+    "varianceAmount": 0.0,
+    "variancePercent": 0.0,
+    "withinTolerance": false
+  },
+  "reportMarkdown": "# Azure Databricks Cost Optimization Assessment Report\n\n- Run ID: `adb-cost-assessment-20260926T031755204Z-4f80c113`\n- Customer: `fabrikam`\n- Run status: **failed**\n- Analysis window: 2026-08-26T00:00:00Z through 2026-09-26T00:00:00Z (UTC)\n- Toolkit version: `0.1.0`\n\n## Contents\n\n1. [Executive summary](#1-executive-summary)\n2. [Estate topology and scope](#2-estate-topology-and-scope)\n3. [Current cost baseline and reconciliation](#3-current-cost-baseline-and-reconciliation)\n4. [Top cost drivers](#4-top-cost-drivers)\n5. [Unattributed cost](#5-unattributed-cost)\n6. [Compute and right-sizing](#6-compute-and-right-sizing)\n7. [SQL Warehouse and query assessment](#7-sql-warehouse-and-query-assessment)\n8. [Jobs and pipelines assessment](#8-jobs-and-pipelines-assessment)\n9. [Spark deep-dive index](#9-spark-deep-dive-index)\n10. [Delta and data-layout assessment](#10-delta-and-data-layout-assessment)\n11. [Governance, policies, budgets, and FinOps](#11-governance-policies-budgets-and-finops)\n12. [Commitment readiness](#12-commitment-readiness)\n13. [Telemetry quality and limitations](#13-telemetry-quality-and-limitations)\n14. [Prioritized optimization backlog](#14-prioritized-optimization-backlog)\n15. [30/60/90 roadmap](#15-306090-roadmap)\n16. [Benefits realization](#16-benefits-realization)\n17. [Human validation and sign-off](#17-human-validation-and-sign-off)\n\n## 1. Executive summary\n\n### Assessment result\n\nThe assessment completed with status **failed**. Authoritative in-scope cost for the window is 0.00 USD on an ActualCost basis.\n\n0 candidate findings and 0 insufficient-evidence findings were produced.\n\n### Interpretation\n\nEvery finding in this report is a candidate that requires human validation. No savings figure is estimated or claimed, and no change has been made to the estate. This assessment is read-only.\n\n### Findings\n\n| Detector | Title | Status | Confidence | Estimated savings |\n| --- | --- | --- | --- | --- |\n\n## 2. Estate topology and scope\n\n### Declared scope\n\n- Tenant: `5bb5fa45-2dcc-4310-bbc5-883021e9d84b`\n- Subscription: `463a82d4-1896-4332-aeeb-618ee5a5aa93`\n- Resource group: `rg-databricks-platform-prod`\n\n### Observed topology\n\n| Workspace | Workspace ID | Resource group | Subscription |\n| --- | --- | --- | --- |\n| dbw-platform-prod | `7405608792310779` | rg-databricks-platform-prod | `463a82d4-1896-4332-aeeb-618ee5a5aa93` |\n\n### Azure Databricks scope filter\n\n| Entity | Input records | Included | Excluded |\n| --- | ---: | ---: | ---: |\n| `azure_cost` | 8914 | 8914 | 0 |\n| `azure_resource` | 148 | 97 | 51 |\n| `owner` | 64 | 52 | 12 |\n| `workspace` | 4 | 4 | 0 |\n\n## 3. Current cost baseline and reconciliation\n\n| Measure | Value |\n| --- | ---: |\n| Authoritative total | 0.00 USD |\n| Collected total | 0.00 USD |\n| Matched | 0.00 USD |\n| Unmatched | 0.00 USD |\n| Excluded | 0.00 USD |\n| Variance | 0.00% |\n| Within tolerance | false |\n\n### Duplicate prevention\n\n> Serverless DBU includes infrastructure; explicit serverless VM estimates are never additive.\n\n## 4. Top cost drivers\n\n| Rank | Driver | Observed cost |\n| ---: | --- | ---: |\n\n## 5. Unattributed cost\n\nSpend attribution coverage is 0.0% of 0.00 USD. Resource attribution coverage is 0.0% across 41 resources.\n\n## 6. Compute and right-sizing\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Azure compute quotas | passed | 486 |\n| Databricks compute [7405608792310779] | pending telemetry | 0 |\n\n## 7. SQL Warehouse and query assessment\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Databricks SQL [7405608792310779] | pending telemetry | 0 |\n\n## 8. Jobs and pipelines assessment\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Databricks workloads [7405608792310779] | pending telemetry | 0 |\n\n## 9. Spark deep-dive index\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Databricks Spark deep dive [7405608792310779] | skipped | 0 |\n\n## 10. Delta and data-layout assessment\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Databricks Unity Catalog [7405608792310779] | pending telemetry | 0 |\n\n## 11. Governance, policies, budgets, and FinOps\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Azure policy and diagnostics | partial | 1042 |\n| Azure budgets and commitments | failed | 0 |\n| Databricks governance [7405608792310779] | pending telemetry | 0 |\n\n## 12. Commitment readiness\n\n### Available datasets\n\n| Source | Status | Items |\n| --- | --- | ---: |\n| Azure budgets and commitments | failed | 0 |\n| Azure compute quotas | passed | 486 |\n\n## 13. Telemetry quality and limitations\n\nOverall telemetry quality is **low** with a score of 0.2188.\n\n| Metric | Value |\n| --- | ---: |\n| attributionQuality | 0.0000 |\n| collectionSuccess | 0.1176 |\n| completeness | 0.1000 |\n| consistency | 1.0000 |\n| coverage | 0.1000 |\n| freshness | 1.0000 |\n| sampleAdequacy | 1.0000 |\n| sourceAuthority | 0.9000 |\n\n### Collection and parsing limitations\n\n- **Azure Cost Management** (failed): No cost baseline exists for this run. No cost figure, driver ranking, or optimization candidate can be produced.\n- **Azure budgets and commitments** (failed): Budget coverage cannot be evaluated.\n- **Databricks collectors** (pending telemetry): Workspace collection did not run because the cost baseline failed first.\n\n## 14. Prioritized optimization backlog\n\n### Provisional review order\n\n| Order | Detector | Confidence | Status |\n| ---: | --- | --- | --- |\n\n## 15. 30/60/90 roadmap\n\n### Days 0-30: validate evidence and ownership\n\n\n### Days 31-60: controlled validation\n\n\n### Days 61-90: scale or stop\n\n\n## 16. Benefits realization\n\n- Baseline ID: `adb-cost-assessment-20260926T031755204Z-4f80c113:v1`\n- Authoritative cost: 0.00 USD\n- Realized savings: **null** (no change has been made, so nothing has been measured)\n- Workload normalization: none — No approved workload normalization factor was supplied.\n\n## 17. Human validation and sign-off\n\nNo finding in this report may be acted upon until the reviewer, role, decision, and rationale columns below are completed by an accountable owner.\n\n| Finding | Reviewer | Role | Decision | Rationale |\n| --- | --- | --- | --- | --- |\n",
+  "review": [],
+  "roadmap": [],
+  "scopeFilter": {
+    "allowedResourceGroupIds": [
+      "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/rg-databricks-platform-prod"
+    ],
+    "allowedResourceGroups": [
+      "rg-databricks-platform-prod",
+      "rg-databricks-platform-nonprod",
+      "rg-analytics-edw",
+      "rg-datascience-sandbox",
+      "mrg-databricks-platform-prod",
+      "mrg-databricks-platform-nonprod",
+      "mrg-analytics-edw",
+      "mrg-datascience-sandbox"
+    ],
+    "entities": {
+      "azure_cost": {
+        "excludedRecords": 0,
+        "includedRecords": 8914,
+        "inputRecords": 8914
+      },
+      "azure_resource": {
+        "excludedRecords": 51,
+        "includedRecords": 97,
+        "inputRecords": 148
+      },
+      "owner": {
+        "excludedRecords": 12,
+        "includedRecords": 52,
+        "inputRecords": 64
+      },
+      "workspace": {
+        "excludedRecords": 0,
+        "includedRecords": 4,
+        "inputRecords": 4
+      }
+    },
+    "limitations": [
+      "rg-analytics-archive was excluded because Reader is not assigned."
+    ],
+    "schemaVersion": "1.0"
+  },
+  "telemetry": {
+    "generatedAtUtc": "2026-09-26T21:52:53.874000Z",
+    "overall": {
+      "level": "low",
+      "metrics": {
+        "attributionQuality": 0.0,
+        "collectionSuccess": 0.1176,
+        "completeness": 0.1,
+        "consistency": 1.0,
+        "coverage": 0.1,
+        "freshness": 1.0,
+        "sampleAdequacy": 1.0,
+        "sourceAuthority": 0.9
+      },
+      "missingRequiredMetrics": [],
+      "score": 0.2188
+    },
+    "schemaVersion": "1.0",
+    "sources": [
+      {
+        "level": "medium",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.68,
+          "consistency": 1.0,
+          "coverage": 0.68,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.68,
+        "source": "raw/azure/resource-inventory.ndjson"
+      },
+      {
+        "level": "medium",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.68,
+          "consistency": 1.0,
+          "coverage": 0.68,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.68,
+        "source": "raw/azure/policy-inventory.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.18,
+          "consistency": 1.0,
+          "coverage": 0.18,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.18,
+        "source": "raw/azure/cost-management.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.18,
+          "consistency": 1.0,
+          "coverage": 0.18,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.18,
+        "source": "raw/azure/budgets-commitments.json"
+      },
+      {
+        "level": "high",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.95,
+          "consistency": 1.0,
+          "coverage": 0.95,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.95,
+        "source": "raw/azure/compute-quotas.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/workspace.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/billing.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/compute.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/workloads.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/sql.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/unity-catalog.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.32,
+          "consistency": 1.0,
+          "coverage": 0.32,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.32,
+        "source": "raw/databricks/7405608792310779/governance.ndjson"
+      },
+      {
+        "level": "low",
+        "metrics": {
+          "attributionQuality": 0.8,
+          "collectionSuccess": 0.9,
+          "completeness": 0.25,
+          "consistency": 1.0,
+          "coverage": 0.25,
+          "freshness": 1.0,
+          "sampleAdequacy": 1.0,
+          "sourceAuthority": 0.9
+        },
+        "missingRequiredMetrics": [],
+        "score": 0.25,
+        "source": "raw/databricks/7405608792310779/spark-deep-dive.ndjson"
+      }
+    ]
+  },
+  "warehouses": [],
+  "workloads": []
+}

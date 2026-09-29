@@ -1,0 +1,20 @@
+{
+  "sharedResources": {
+    "defaultMethod": "unallocated",
+    "supportedMethods": [
+      "unallocated",
+      "equal",
+      "usage_quantity",
+      "worker_hours",
+      "bytes_processed",
+      "custom"
+    ]
+  },
+  "serverless": {
+    "underlyingVmCostIncludedInDbu": true
+  },
+  "tolerance": {
+    "absoluteCurrency": 10.0,
+    "percent": 2.0
+  }
+}

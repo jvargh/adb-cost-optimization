@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/src/assets/favicon.svg?inline" />
+    <title>Azure Databricks Cost Optimization Assessment</title>
+    <script>
+      (() => {
+        const param = new URLSearchParams(window.location.search).get("scoutTheme");
+        const theme =
+          param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <script>
+      (() => {
+        try {
+          const stored = localStorage.getItem("adb-assessment-theme");
+          if (!new URLSearchParams(window.location.search).has("scoutTheme") && stored) {
+            document.documentElement.setAttribute("data-theme", stored);
+          }
+        } catch {
+          // Theme persistence is optional in storage-restricted browser contexts.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

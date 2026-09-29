@@ -1,0 +1,26 @@
+# ============================================================
+# Databricks Toolkit - Additional Cluster Libraries
+# Packages to install ALONGSIDE the wheel on the Databricks cluster.
+#
+# DO NOT include here:
+#   - pandas    → pre-installed in all Databricks Runtimes
+#   - numpy     → pre-installed in all Databricks Runtimes
+#   - databricks-sdk → pre-installed in Databricks Runtime 13.3 LTS+
+#
+# Install these via:
+#   %pip install -r requirements.txt
+#   ...or attach as Cluster Libraries in the Databricks UI.
+# ============================================================
+
+# ── Must install (not bundled in Databricks Runtime) ───────
+openpyxl>=3.0.0             # Excel (.xlsx) export — not included in any DBR
+
+# ── If using Databricks Runtime < 13.3 LTS ─────────────────
+# databricks-sdk is pre-installed from DBR 13.3 LTS onwards.
+# Uncomment only if targeting an older runtime:
+# databricks-sdk>=0.12.0
+
+# ── Optional: Azure Blob Storage input support ─────────────
+# Uncomment only if reading input CSV/JSON files from Azure Blob Storage.
+# azure-storage-blob>=12.19.0
+# azure-identity>=1.15.0

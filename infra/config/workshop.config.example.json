@@ -1,0 +1,42 @@
+{
+  "expectedSubscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+  "location": "eastus",
+  "deploymentSuffix": "l300c01",
+  "catalogName": "main",
+  "schemaName": "adb_cost_workshop",
+  "classic": {
+    "nodeTypeId": "Standard_D4s_v5",
+    "alternateNodeTypeIds": [
+      "Standard_D4ads_v5",
+      "Standard_D4as_v5",
+      "Standard_D4ds_v5",
+      "Standard_D4ds_v6",
+      "Standard_D4ds_v4"
+    ],
+    "autoterminationMinutes": 15,
+    "minWorkers": 1,
+    "maxWorkers": 2,
+    "runtimeEngine": "PHOTON",
+    "maxRetries": 0,
+    "timeoutSeconds": 1200
+  },
+  "serverless": {
+    "environmentClient": "1",
+    "maxRetries": 0,
+    "timeoutSeconds": 1200
+  },
+  "sqlWarehouse": {
+    "clusterSize": "2X-Small",
+    "minClusters": 1,
+    "maxClusters": 1,
+    "autoStopMinutes": 5,
+    "enableServerlessCompute": true
+  },
+  "tags": {
+    "Environment": "workshop",
+    "Purpose": "cost-optimization",
+    "CostCenter": "Engineering",
+    "Workshop": "L300",
+    "Owner": "Platform-Team"
+  }
+}

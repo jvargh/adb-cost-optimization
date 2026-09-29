@@ -1,0 +1,83 @@
+{
+  "customerId": "workshop-validation",
+  "assessmentId": "adb-cost-assessment",
+  "azure": {
+    "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b",
+    "subscriptions": [
+      "463a82d4-1896-4332-aeeb-618ee5a5aa93"
+    ],
+    "resourceGroups": [
+      "rg-adb-cost-workshop-l300c01"
+    ],
+    "includeManagementGroups": false,
+    "costScope": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93",
+    "costBasis": [
+      "ActualCost",
+      "AmortizedCost"
+    ],
+    "currency": "USD"
+  },
+  "databricks": {
+    "accountId": "2ec206b3-4f4a-4900-9c4a-261833fcb243",
+    "accountHost": "accounts.azuredatabricks.net",
+    "allowSqlWarehouseAutoStart": true,
+    "sqlWarehouseId": "19dfff78c4e639c4",
+    "workspaces": [
+      {
+        "name": "dbw-adb-cost-l300c01",
+        "resourceGroup": "rg-adb-cost-workshop-l300c01",
+        "workspaceUrl": "adb-7405608792310779.19.azuredatabricks.net",
+        "workspaceId": "7405608792310779",
+        "sqlWarehouseId": "19dfff78c4e639c4",
+        "include": true
+      }
+    ],
+    "includeQueryText": false,
+    "includeNotebookPaths": false,
+    "includeIdentities": false,
+    "deepDiveJobRunIds": [
+      1046670031216278
+    ],
+    "deepDiveTableNames": [
+      "dbw_adb_cost_l300c01.adb_cost_workshop.tpch_orders"
+    ]
+  },
+  "analysis": {
+    "startUtc": "2026-08-26T00:00:00Z",
+    "endUtc": "2026-09-26T00:00:00Z",
+    "timeZone": "UTC",
+    "maxPages": 100,
+    "pageSize": 1000,
+    "requestTimeoutSeconds": 120,
+    "collectorTimeoutSeconds": 1800,
+    "retryCount": 3,
+    "retryBaseSeconds": 2
+  },
+  "thresholds": {
+    "materialMonthlyCost": 100.0,
+    "unattributedCostPercent": 5.0,
+    "idleComputePercent": 20.0,
+    "interactiveAutoTerminationMinutes": 60,
+    "legacyRuntimeMajorVersionsBehind": 2,
+    "smallFileBytes": 33554432,
+    "smallFilePercent": 30.0,
+    "sqlQueueP95Seconds": 30.0,
+    "jobFailureRatePercent": 5.0,
+    "continuousStreamingIdlePercent": 50.0,
+    "poolIdleHours": 24.0
+  },
+  "redaction": {
+    "hashIdentities": true,
+    "hashTableNames": false,
+    "hashNotebookPaths": true,
+    "omitQueryText": true,
+    "saltEnvironmentVariable": "ADB_ASSESSMENT_HASH_SALT"
+  },
+  "outputs": {
+    "root": "./assessment/output",
+    "retainRaw": true,
+    "writeCsv": true,
+    "writeJson": true,
+    "writeMarkdown": true
+  }
+}

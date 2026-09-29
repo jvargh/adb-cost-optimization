@@ -1,0 +1,399 @@
+{
+  "events": [
+    {
+      "message": "Running the static read-only scanner over all assessment scripts",
+      "offsetMs": 0,
+      "phase": "preflight",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "AssessmentReadOnlySafety=PASS (34 PowerShell scripts parsed, 0 mutating calls found)",
+      "offsetMs": 600,
+      "type": "log"
+    },
+    {
+      "level": "info",
+      "message": "Read-only boundary confirmed: Azure GET plus approved Resource Graph and Cost Management POST only.",
+      "offsetMs": 1100,
+      "type": "log"
+    },
+    {
+      "message": "Collecting Azure and Databricks evidence",
+      "offsetMs": 1500,
+      "phase": "collecting",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure inventory...",
+      "offsetMs": 1800,
+      "type": "log"
+    },
+    {
+      "offsetMs": 2150,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:01.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 148,
+        "limitations": [],
+        "name": "Azure inventory",
+        "outputs": [
+          "raw/azure/resource-inventory.ndjson",
+          "raw/azure/databricks-workspaces.json"
+        ],
+        "startedAtUtc": "2026-09-26T21:49:50.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure policy and diagnostics...",
+      "offsetMs": 2400,
+      "type": "log"
+    },
+    {
+      "offsetMs": 2750,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:23.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 1042,
+        "limitations": [],
+        "name": "Azure policy and diagnostics",
+        "outputs": [
+          "raw/azure/policy-inventory.ndjson",
+          "raw/azure/diagnostic-settings.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:01.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure Cost Management...",
+      "offsetMs": 3000,
+      "type": "log"
+    },
+    {
+      "offsetMs": 3350,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:52.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 8914,
+        "limitations": [],
+        "name": "Azure Cost Management",
+        "outputs": [
+          "raw/azure/cost-management.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:23.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure budgets and commitments...",
+      "offsetMs": 3600,
+      "type": "log"
+    },
+    {
+      "offsetMs": 3950,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:50:56.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 7,
+        "limitations": [],
+        "name": "Azure budgets and commitments",
+        "outputs": [
+          "raw/azure/budgets-commitments.json"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:52.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Azure compute quotas...",
+      "offsetMs": 4200,
+      "type": "log"
+    },
+    {
+      "offsetMs": 4550,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:04.874000Z",
+        "domain": "azure",
+        "error": "",
+        "itemCount": 486,
+        "limitations": [],
+        "name": "Azure compute quotas",
+        "outputs": [
+          "raw/azure/compute-quotas.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:50:56.874000Z",
+        "status": "passed"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks workspace [7405608792310779]...",
+      "offsetMs": 4800,
+      "type": "log"
+    },
+    {
+      "offsetMs": 5149,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:11.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 3,
+        "limitations": [],
+        "name": "Databricks workspace [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/workspace.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:05.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks billing [7405608792310779]...",
+      "offsetMs": 5399,
+      "type": "log"
+    },
+    {
+      "offsetMs": 5749,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:15.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 5411,
+        "limitations": [],
+        "name": "Databricks billing [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/billing.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:09.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks compute [7405608792310779]...",
+      "offsetMs": 5999,
+      "type": "log"
+    },
+    {
+      "offsetMs": 6349,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:19.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 96,
+        "limitations": [],
+        "name": "Databricks compute [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/compute.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:13.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks workloads [7405608792310779]...",
+      "offsetMs": 6599,
+      "type": "log"
+    },
+    {
+      "offsetMs": 6949,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:23.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 412,
+        "limitations": [],
+        "name": "Databricks workloads [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/workloads.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:17.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks SQL [7405608792310779]...",
+      "offsetMs": 7199,
+      "type": "log"
+    },
+    {
+      "offsetMs": 7549,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:27.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 18422,
+        "limitations": [],
+        "name": "Databricks SQL [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/sql.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:21.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks Unity Catalog [7405608792310779]...",
+      "offsetMs": 7799,
+      "type": "log"
+    },
+    {
+      "offsetMs": 8149,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:31.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 1204,
+        "limitations": [],
+        "name": "Databricks Unity Catalog [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/unity-catalog.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:25.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks governance [7405608792310779]...",
+      "offsetMs": 8399,
+      "type": "log"
+    },
+    {
+      "offsetMs": 8749,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:35.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 31,
+        "limitations": [],
+        "name": "Databricks governance [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/governance.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:29.874000Z",
+        "status": "passed",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "level": "info",
+      "message": "Starting Databricks Spark deep dive [7405608792310779]...",
+      "offsetMs": 8999,
+      "type": "log"
+    },
+    {
+      "level": "warn",
+      "message": "Databricks Spark deep dive [7405608792310779]: No deep-dive targets were supplied.",
+      "offsetMs": 9349,
+      "type": "log"
+    },
+    {
+      "offsetMs": 9499,
+      "source": {
+        "completedAtUtc": "2026-09-26T21:51:39.874000Z",
+        "domain": "databricks",
+        "error": "",
+        "itemCount": 0,
+        "limitations": [
+          "No deep-dive targets were supplied."
+        ],
+        "name": "Databricks Spark deep dive [7405608792310779]",
+        "outputs": [
+          "raw/databricks/7405608792310779/spark-deep-dive.ndjson"
+        ],
+        "startedAtUtc": "2026-09-26T21:51:33.874000Z",
+        "status": "skipped",
+        "workspaceKey": "7405608792310779"
+      },
+      "type": "source"
+    },
+    {
+      "message": "Normalizing raw responses into the schema 1.0 model",
+      "offsetMs": 9749,
+      "phase": "normalizing",
+      "type": "phase"
+    },
+    {
+      "message": "Correlating entities, reconciling cost, and scoring telemetry quality",
+      "offsetMs": 10249,
+      "phase": "analyzing",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "Cost reconciliation variance 0.40% (within tolerance: true)",
+      "offsetMs": 10749,
+      "type": "log"
+    },
+    {
+      "message": "Evaluating detectors and building optimization candidates",
+      "offsetMs": 11149,
+      "phase": "findings",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "3 candidates and 0 insufficient-evidence findings produced. No savings figure is inferred.",
+      "offsetMs": 11649,
+      "type": "log"
+    },
+    {
+      "message": "Rendering the consolidated Markdown report and CSV exports",
+      "offsetMs": 12049,
+      "phase": "reporting",
+      "type": "phase"
+    },
+    {
+      "level": "info",
+      "message": "Wrote reports/assessment-report.md plus 3 CSV exports.",
+      "offsetMs": 12549,
+      "type": "log"
+    },
+    {
+      "level": "info",
+      "message": "Run completed with status passed: every source returned evidence.",
+      "offsetMs": 12850,
+      "type": "log"
+    },
+    {
+      "offsetMs": 13150,
+      "runId": "adb-cost-assessment-20260919T101204517Z-7ac22b91",
+      "type": "completed"
+    }
+  ],
+  "runId": "adb-cost-assessment-20260919T101204517Z-7ac22b91"
+}

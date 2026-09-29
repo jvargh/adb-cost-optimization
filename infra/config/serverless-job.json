@@ -1,0 +1,87 @@
+{
+  "name": "cost-workshop-serverless-scenarios",
+  "max_concurrent_runs": 1,
+  "timeout_seconds": 3600,
+  "tags": {
+    "workload": "cost-optimization-workshop",
+    "compute": "serverless",
+    "environment": "workshop",
+    "owner": "{{OWNER}}",
+    "cost_center": "{{COST_CENTER}}"
+  },
+  "tasks": [
+    {
+      "task_key": "setup",
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/00_setup_data",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}",
+          "max_rows": "250000"
+        }
+      }
+    },
+    {
+      "task_key": "serverless_comparison",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/02_serverless_baseline_optimized",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}"
+        }
+      }
+    },
+    {
+      "task_key": "incremental_cdc",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/05_full_vs_incremental_cdc",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}",
+          "change_rows": "5000"
+        }
+      }
+    },
+    {
+      "task_key": "delta_maintenance",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "timeout_seconds": 1200,
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/06_delta_layout_maintenance",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}"
+        }
+      }
+    }
+  ]
+}
+

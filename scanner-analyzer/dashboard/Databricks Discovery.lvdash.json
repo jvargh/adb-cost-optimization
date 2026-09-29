@@ -1,0 +1,1236 @@
+{
+  "datasets": [
+    {
+      "name": "f121ad13",
+      "displayName": "workspace_scan_summary",
+      "queryLines": [
+        "SELECT \r\n",
+        "  -- Scan Metadata\r\n",
+        "  scan_id,\r\n",
+        "  workspace_id,\r\n",
+        "  workspace_url,\r\n",
+        "  DATE_FORMAT(scan_start_timestamp, 'yyyy-MM-dd HH:mm:ss') as scan_start_timestamp,\r\n",
+        "  DATE_FORMAT(scan_end_timestamp, 'yyyy-MM-dd HH:mm:ss') as scan_end_timestamp,\r\n",
+        "  ROUND(scan_duration_seconds, 2) as scan_duration_sec,\r\n",
+        "  scan_type,\r\n",
+        "  -- Top Row - Resource Counts\r\n",
+        "  total_clusters,\r\n",
+        "  total_jobs,\r\n",
+        "  total_pipelines,\r\n",
+        "  total_uc_tables,\r\n",
+        "  total_warehouses,\r\n",
+        "  total_ml_experiments,\r\n",
+        "  total_repos,\r\n",
+        "  total_serving_endpoints,\r\n",
+        "  total_genie_spaces,\r\n",
+        "  total_alerts,\r\n",
+        "  total_notebooks\r\n",
+        "  FROM dbscannercatalog.catalog_inventory.workspace_scan_summary\r\n",
+        "  WHERE workspace_id = :workspace_id and scan_id = (SELECT MAX(scan_id) FROM dbscannercatalog.catalog_inventory.workspace_scan_summary where workspace_id = :workspace_id)\r\n",
+        "\r\n"
+      ],
+      "parameters": [
+        {
+          "displayName": "workspace_id",
+          "keyword": "workspace_id",
+          "dataType": "STRING",
+          "defaultSelection": {}
+        }
+      ]
+    },
+    {
+      "name": "13e78280",
+      "displayName": "workspace_scan_clusters",
+      "queryLines": [
+        "select * from dbscannercatalog.catalog_inventory.workspace_scan_clusters\r\n",
+        "WHERE scan_id = (SELECT MAX(scan_id) FROM dbscannercatalog.catalog_inventory.workspace_scan_summary)\r\n"
+      ]
+    },
+    {
+      "name": "ec39577a",
+      "displayName": "workspace_scan_uc_tables",
+      "queryLines": [
+        "select * from dbscannercatalog.catalog_inventory.workspace_scan_uc_tables\r\n",
+        "WHERE scan_id = (SELECT MAX(scan_id) FROM dbscannercatalog.catalog_inventory.workspace_scan_summary) and catalog_name<> 'samples'"
+      ]
+    },
+    {
+      "name": "2db73e5f",
+      "displayName": "workspace_scan_warehouses",
+      "queryLines": [
+        "select * from dbscannercatalog.catalog_inventory.workspace_scan_warehouses\r\n",
+        "WHERE scan_id = (SELECT MAX(scan_id) FROM dbscannercatalog.catalog_inventory.workspace_scan_warehouses)\r\n"
+      ]
+    },
+    {
+      "name": "22c9203d",
+      "displayName": "workspace_scan_pipelines",
+      "queryLines": [
+        "select * from dbscannercatalog.catalog_inventory.workspace_scan_pipelines\r\n",
+        "WHERE scan_id = (SELECT MAX(scan_id) FROM dbscannercatalog.catalog_inventory.workspace_scan_pipelines)\r\n"
+      ]
+    },
+    {
+      "name": "250aa0a2",
+      "displayName": "all_workspace",
+      "queryLines": [
+        "select workspace_id FROM dbscannercatalog.catalog_inventory.workspace_scan_summary"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "ea4aa2ac",
+      "displayName": "Databricks Discovery Dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "total-notebooks",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_notebooks)",
+                      "expression": "SUM(`total_notebooks`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_notebooks)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Notebooks",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "total-clusters",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_clusters)",
+                      "expression": "SUM(`total_clusters`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_clusters)"
+                }
+              },
+              "frame": {
+                "showDescription": false,
+                "title": "Total Clusters",
+                "showTitle": true,
+                "headerAlignment": "center"
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#FFFFFF"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "workspace-id",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "workspace_id",
+                      "expression": "`workspace_id`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "workspace_id"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Workspace ID"
+              }
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#FFFFFF"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "ec345db9",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"text-align:center;display:block\"><span style=\"font-size:36px;line-height:1.5\">**Databricks Catalog Dashboard**</span></span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#8797E7"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "scan-duration",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(scan_duration_sec)",
+                      "expression": "SUM(`scan_duration_sec`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(scan_duration_sec)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Scan Duration(sec)",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "scan-type",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "scan_type",
+                      "expression": "`scan_type`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "scan_type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Scan Type",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "scan-start",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "scan_start_timestamp",
+                      "expression": "`scan_start_timestamp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "scan_start_timestamp"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Scan Start Time"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "datawarehouses",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_warehouses)",
+                      "expression": "SUM(`total_warehouses`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_warehouses)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Datawarehouses",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "total-jobs",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_jobs)",
+                      "expression": "SUM(`total_jobs`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_jobs)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Jobs",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "total-pipelines",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_pipelines)",
+                      "expression": "SUM(`total_pipelines`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_pipelines)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Pipelines",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "total-uc-tables",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_uc_tables)",
+                      "expression": "SUM(`total_uc_tables`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_uc_tables)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total UC Tables"
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "dashboards",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_serving_endpoints)",
+                      "expression": "SUM(`total_serving_endpoints`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_serving_endpoints)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Serving \nEnd Points",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "alerts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_ml_experiments)",
+                      "expression": "SUM(`total_ml_experiments`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_ml_experiments)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "ML Experiments",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "genie",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_genie_spaces)",
+                      "expression": "SUM(`total_genie_spaces`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_genie_spaces)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Genie",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "scan-end-time",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "scan_end_timestamp",
+                      "expression": "`scan_end_timestamp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "scan_end_timestamp"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Scan End Time"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 3,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "total-repos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_repos)",
+                      "expression": "SUM(`total_repos`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_repos)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Repos"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "alerts-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "fields": [
+                    {
+                      "name": "sum(total_alerts)",
+                      "expression": "SUM(`total_alerts`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_alerts)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Alerts",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "9cee6605",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "13e78280",
+                  "fields": [
+                    {
+                      "name": "cluster_id",
+                      "expression": "`cluster_id`"
+                    },
+                    {
+                      "name": "cluster_name",
+                      "expression": "`cluster_name`"
+                    },
+                    {
+                      "name": "cluster_source",
+                      "expression": "`cluster_source`"
+                    },
+                    {
+                      "name": "creator_user_name",
+                      "expression": "`creator_user_name`"
+                    },
+                    {
+                      "name": "driver_node_type_id",
+                      "expression": "`driver_node_type_id`"
+                    },
+                    {
+                      "name": "enable_elastic_disk",
+                      "expression": "`enable_elastic_disk`"
+                    },
+                    {
+                      "name": "node_type_id",
+                      "expression": "`node_type_id`"
+                    },
+                    {
+                      "name": "spark_version",
+                      "expression": "`spark_version`"
+                    },
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "cluster_id"
+                  },
+                  {
+                    "fieldName": "cluster_name"
+                  },
+                  {
+                    "fieldName": "cluster_source"
+                  },
+                  {
+                    "fieldName": "creator_user_name"
+                  },
+                  {
+                    "fieldName": "driver_node_type_id"
+                  },
+                  {
+                    "fieldName": "enable_elastic_disk"
+                  },
+                  {
+                    "fieldName": "node_type_id"
+                  },
+                  {
+                    "fieldName": "spark_version"
+                  },
+                  {
+                    "fieldName": "state"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "47a192c4",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"text-align:center;display:block\"><span style=\"font-size:24px\">**Cluster Details**</span></span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#7388E4"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "2447aa0b",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"text-align:center;display:block\"><span style=\"font-size: 24px;\">**Unity Catalog Objects**</span></span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#FFFFFF"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "df352092",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ec39577a",
+                  "fields": [
+                    {
+                      "name": "catalog_name",
+                      "expression": "`catalog_name`"
+                    },
+                    {
+                      "name": "schema_name",
+                      "expression": "`schema_name`"
+                    },
+                    {
+                      "name": "table_name",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "table_type",
+                      "expression": "`table_type`"
+                    },
+                    {
+                      "name": "storage_location",
+                      "expression": "`storage_location`"
+                    },
+                    {
+                      "name": "table_format",
+                      "expression": "`table_format`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "catalog_name"
+                  },
+                  {
+                    "fieldName": "schema_name"
+                  },
+                  {
+                    "fieldName": "table_name"
+                  },
+                  {
+                    "fieldName": "table_type"
+                  },
+                  {
+                    "fieldName": "storage_location"
+                  },
+                  {
+                    "fieldName": "table_format"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "d1864c2c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2db73e5f",
+                  "fields": [
+                    {
+                      "name": "warehouse_id",
+                      "expression": "`warehouse_id`"
+                    },
+                    {
+                      "name": "warehouse_name",
+                      "expression": "`warehouse_name`"
+                    },
+                    {
+                      "name": "warehouse_type",
+                      "expression": "`warehouse_type`"
+                    },
+                    {
+                      "name": "cluster_size",
+                      "expression": "`cluster_size`"
+                    },
+                    {
+                      "name": "max_num_clusters",
+                      "expression": "`max_num_clusters`"
+                    },
+                    {
+                      "name": "min_num_clusters",
+                      "expression": "`min_num_clusters`"
+                    },
+                    {
+                      "name": "auto_stop_mins",
+                      "expression": "`auto_stop_mins`"
+                    },
+                    {
+                      "name": "spot_instance_policy",
+                      "expression": "`spot_instance_policy`"
+                    },
+                    {
+                      "name": "enable_photon",
+                      "expression": "`enable_photon`"
+                    },
+                    {
+                      "name": "enable_serverless_compute",
+                      "expression": "`enable_serverless_compute`"
+                    },
+                    {
+                      "name": "creator_name",
+                      "expression": "`creator_name`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "warehouse_id"
+                  },
+                  {
+                    "fieldName": "warehouse_name"
+                  },
+                  {
+                    "fieldName": "warehouse_type"
+                  },
+                  {
+                    "fieldName": "cluster_size"
+                  },
+                  {
+                    "fieldName": "max_num_clusters"
+                  },
+                  {
+                    "fieldName": "min_num_clusters"
+                  },
+                  {
+                    "fieldName": "auto_stop_mins"
+                  },
+                  {
+                    "fieldName": "spot_instance_policy"
+                  },
+                  {
+                    "fieldName": "enable_photon"
+                  },
+                  {
+                    "fieldName": "enable_serverless_compute"
+                  },
+                  {
+                    "fieldName": "creator_name"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 6,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "4ad98f13",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"text-align:center;display:block\"><span style=\"font-size: 24px;\">**SQL Warehouses**</span></span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 20,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "5e382d8d",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"text-align:center;display:block;\"><span style=\"font-size: 24px;\">Pipelines</span></span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 25,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "f02b2c81",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "22c9203d",
+                  "fields": [
+                    {
+                      "name": "pipeline_id",
+                      "expression": "`pipeline_id`"
+                    },
+                    {
+                      "name": "pipeline_name",
+                      "expression": "`pipeline_name`"
+                    },
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    },
+                    {
+                      "name": "creator_user_name",
+                      "expression": "`creator_user_name`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "pipeline_id"
+                  },
+                  {
+                    "fieldName": "pipeline_name"
+                  },
+                  {
+                    "fieldName": "state"
+                  },
+                  {
+                    "fieldName": "creator_user_name"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 26,
+            "width": 6,
+            "height": 3
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "069a2e95",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "038adedf",
+            "queries": [
+              {
+                "name": "dashboards/01f0ff7cf63d125a90abbcc49fbfdedf/datasets/01f1026bf2d71d9ba875704a67f1596f_workspace_id",
+                "query": {
+                  "datasetName": "250aa0a2",
+                  "fields": [
+                    {
+                      "name": "workspace_id",
+                      "expression": "`workspace_id`"
+                    },
+                    {
+                      "name": "workspace_id_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f0ff7cf63d125a90abbcc49fbfdedf/datasets/01f0ff7d0244158d862225c57c30e838_workspace_id",
+                "query": {
+                  "datasetName": "f121ad13",
+                  "parameters": [
+                    {
+                      "name": "workspace_id",
+                      "keyword": "workspace_id"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "workspace_id",
+                    "queryName": "dashboards/01f0ff7cf63d125a90abbcc49fbfdedf/datasets/01f1026bf2d71d9ba875704a67f1596f_workspace_id"
+                  },
+                  {
+                    "parameterName": "workspace_id",
+                    "queryName": "parameter_dashboards/01f0ff7cf63d125a90abbcc49fbfdedf/datasets/01f0ff7d0244158d862225c57c30e838_workspace_id"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

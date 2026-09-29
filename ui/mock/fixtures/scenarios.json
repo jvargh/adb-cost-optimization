@@ -1,0 +1,17 @@
+[
+  {
+    "description": "Four workspaces across three subscriptions. Several collectors return partial or pending telemetry, which is the most common real-world outcome.",
+    "id": "contoso-partial",
+    "label": "Contoso — multi-subscription estate (partial)"
+  },
+  {
+    "description": "A focused, healthy engagement where every collector succeeded and two findings already carry a recorded review decision.",
+    "id": "contoso-clean",
+    "label": "Contoso — single workspace (all sources passed)"
+  },
+  {
+    "description": "The signed-in principal lacks Cost Management Reader, so no cost baseline exists. Demonstrates honest failure reporting instead of an empty dashboard.",
+    "id": "fabrikam-failed",
+    "label": "Fabrikam — cost collection failed"
+  }
+]

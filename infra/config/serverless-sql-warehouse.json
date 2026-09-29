@@ -1,0 +1,33 @@
+{
+  "name": "cost-workshop-serverless-sql",
+  "cluster_size": "2X-Small",
+  "min_num_clusters": 1,
+  "max_num_clusters": 1,
+  "auto_stop_mins": 5,
+  "enable_serverless_compute": true,
+  "enable_photon": true,
+  "warehouse_type": "PRO",
+  "channel": {
+    "name": "CURRENT"
+  },
+  "tags": {
+    "custom_tags": [
+      {
+        "key": "workload",
+        "value": "cost-optimization-workshop"
+      },
+      {
+        "key": "environment",
+        "value": "workshop"
+      },
+      {
+        "key": "owner",
+        "value": "{{OWNER}}"
+      },
+      {
+        "key": "cost_center",
+        "value": "{{COST_CENTER}}"
+      }
+    ]
+  }
+}

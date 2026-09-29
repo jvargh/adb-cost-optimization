@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Cost optimization</title>
+  <style>
+    :root { --cp-accent: #b11f4b; --cp-accent-fg: #ffffff; }
+  </style>
+  <rect width="64" height="64" rx="14" fill="var(--cp-accent)"/>
+  <g fill="var(--cp-accent-fg)">
+    <rect x="12" y="16" width="9" height="34" rx="2"/>
+    <rect x="28" y="26" width="9" height="24" rx="2"/>
+    <rect x="44" y="36" width="9" height="14" rx="2"/>
+  </g>
+</svg>

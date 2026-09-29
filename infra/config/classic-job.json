@@ -1,0 +1,115 @@
+{
+  "name": "cost-workshop-classic-scenarios",
+  "max_concurrent_runs": 1,
+  "timeout_seconds": 3600,
+  "tags": {
+    "workload": "cost-optimization-workshop",
+    "compute": "classic",
+    "environment": "workshop",
+    "owner": "{{OWNER}}",
+    "cost_center": "{{COST_CENTER}}"
+  },
+  "job_clusters": [
+    {
+      "job_cluster_key": "bounded_classic",
+      "new_cluster": {
+        "policy_id": "{{CLASSIC_POLICY_ID}}",
+        "spark_version": "{{DATABRICKS_RUNTIME_VERSION}}",
+        "node_type_id": "{{SMALL_NODE_TYPE_ID}}",
+        "autoscale": {
+          "min_workers": 1,
+          "max_workers": 2
+        },
+        "autotermination_minutes": 15,
+        "data_security_mode": "SINGLE_USER",
+        "runtime_engine": "PHOTON",
+        "custom_tags": {
+          "workload": "cost-optimization-workshop",
+          "owner": "{{OWNER}}",
+          "cost_center": "{{COST_CENTER}}"
+        }
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "task_key": "setup",
+      "job_cluster_key": "bounded_classic",
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/00_setup_data",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}",
+          "max_rows": "250000"
+        }
+      }
+    },
+    {
+      "task_key": "classic_comparison",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "job_cluster_key": "bounded_classic",
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/01_classic_baseline_optimized",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}",
+          "shuffle_partitions": "32"
+        }
+      }
+    },
+    {
+      "task_key": "shuffle_skew_spill",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "job_cluster_key": "bounded_classic",
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/03_shuffle_skew_spill",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}",
+          "shuffle_partitions": "32"
+        }
+      }
+    },
+    {
+      "task_key": "udf_vs_native",
+      "depends_on": [
+        {
+          "task_key": "setup"
+        }
+      ],
+      "job_cluster_key": "bounded_classic",
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "min_retry_interval_millis": 60000,
+      "retry_on_timeout": false,
+      "notebook_task": {
+        "notebook_path": "{{WORKSPACE_NOTEBOOK_ROOT}}/04_udf_vs_native",
+        "base_parameters": {
+          "catalog": "{{CATALOG}}",
+          "schema": "{{SCHEMA}}"
+        }
+      }
+    }
+  ]
+}
+

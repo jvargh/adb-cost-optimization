@@ -1,0 +1,330 @@
+{
+  "version": "1.0.0",
+  "description": "Databricks Cluster Analysis Rules and Thresholds Configuration",
+  "last_updated": "2026-01-31",
+  
+  "utilization_categorization": {
+    "description": "Thresholds for categorizing cluster utilization based on max(CPU, Memory)",
+    "thresholds": {
+      "high": 80,
+      "moderate_high": 70,
+      "well_utilized": 50,
+      "under_utilized": 15,
+      "low": 5
+    },
+    "categories": {
+      "idle": {
+        "threshold": "<5%",
+        "label": "Idle"
+      },
+      "low": {
+        "threshold": "5-15%",
+        "label": "Low Utilization"
+      },
+      "under_utilized": {
+        "threshold": "15-50%",
+        "label": "Under-utilized"
+      },
+      "well_utilized": {
+        "threshold": "50-70%",
+        "label": "Well-utilized"
+      },
+      "moderate": {
+        "threshold": "70-80%",
+        "label": "Moderate (70-80%)"
+      },
+      "high": {
+        "threshold": ">80%",
+        "label": "High Utilization"
+      }
+    }
+  },
+
+  "autoscaling_range_classification": {
+    "description": "Thresholds for classifying autoscaling range size (max_workers - min_workers)",
+    "narrow_threshold": 2,
+    "moderate_threshold": 5,
+    "ranges": {
+      "narrow": "range_size <= 2",
+      "moderate": "2 < range_size <= 5",
+      "wide": "range_size > 5"
+    }
+  },
+
+  "network_thresholds": {
+    "description": "Percentile threshold for calculating high network traffic baseline",
+    "quantile": 0.75,
+    "absolute_threshold_mb": 100000,
+    "note": "75th percentile used for both received and sent traffic (more sensitive to network-intensive workloads). Absolute threshold of 100,000 MB ensures very high traffic is always detected."
+  },
+
+  "autoscaling_recommendations": {
+    "description": "Rules for generating autoscaling cluster recommendations based on range and utilization",
+    
+    "utilization_breakpoints": {
+      "idle": 5,
+      "low": 15,
+      "under_utilized": 50,
+      "well_utilized": 80
+    },
+
+    "scaling_adjustments": {
+      "idle": {
+        "narrow": {
+          "reduce_to_offset": 1,
+          "recommendation_template": "CRITICAL: Idle cluster. Reduce to {min_w}-{new_max} or terminate if unused"
+        },
+        "moderate": {
+          "reduce_to_offset": 1,
+          "savings_estimate_range": [60, 80],
+          "recommendation_template": "CRITICAL: Idle cluster. Reduce to {min_w}-{new_max} (potential {savings_min}-{savings_max}% savings)"
+        },
+        "wide": {
+          "reduce_to_offset": 2,
+          "savings_estimate_range": [70, 90],
+          "recommendation_template": "CRITICAL: Idle cluster with wide range. Reduce to {min_w}-{new_max} or terminate (potential {savings_min}-{savings_max}% savings)"
+        }
+      },
+
+      "low": {
+        "narrow": {
+          "reduce_to_offset": 1,
+          "recommendation_template": "HIGH: Low utilization. Consider reducing to {min_w}-{new_max} or review workload necessity"
+        },
+        "moderate": {
+          "reduction_method": "average",
+          "min_offset": 2,
+          "recommendation_template": "HIGH: Low utilization. Reduce max to {new_max} ({min_w}-{new_max})"
+        },
+        "wide": {
+          "reduction_factor": 0.5,
+          "min_offset": 3,
+          "savings_estimate_range": [40, 60],
+          "recommendation_template": "CRITICAL: Low utilization with wide range. Reduce to {min_w}-{new_max} (potential {savings_min}-{savings_max}% savings)"
+        }
+      },
+
+      "under_utilized": {
+        "narrow": {
+          "reduce_to_offset": 1,
+          "recommendation_template": "LOW: Under-utilized but narrow range is acceptable. Monitor or reduce max to {new_max}"
+        },
+        "moderate": {
+          "reduction_factor": 0.8,
+          "min_offset": 2,
+          "recommendation_template": "MEDIUM: Under-utilized. Consider reducing max to {new_max} ({min_w}-{new_max})"
+        },
+        "wide": {
+          "reduction_factor": 0.7,
+          "min_offset": 4,
+          "recommendation_template": "HIGH: Under-utilized with wide range. Reduce to {min_w}-{new_max} for better cost efficiency"
+        }
+      },
+
+      "well_utilized": {
+        "narrow": {
+          "increase_offset": 1,
+          "recommendation_template": "LOW: Well-configured. Optionally expand to {min_w}-{new_max} for more flexibility"
+        },
+        "moderate": {
+          "action": "no_action",
+          "recommendation_template": "LOW: Well-configured and appropriately sized. No action needed"
+        },
+        "wide": {
+          "action": "no_action",
+          "recommendation_template": "LOW: Well-utilized. Wide range provides good elasticity. No action needed"
+        }
+      },
+
+      "high": {
+        "narrow": {
+          "increase_offset": 2,
+          "recommendation_template": "HIGH: High utilization with narrow range. Increase to {min_w}-{new_max} to handle peaks"
+        },
+        "moderate": {
+          "increase_factor": 1.3,
+          "recommendation_template": "HIGH: High utilization. Increase max to {new_max} ({min_w}-{new_max}) to prevent bottlenecks"
+        },
+        "wide": {
+          "increase_factor": 1.2,
+          "recommendation_template": "MEDIUM: High utilization but wide range should handle peaks. Consider increasing to {min_w}-{new_max} if consistent"
+        }
+      }
+    }
+  },
+
+  "fixed_size_recommendations": {
+    "description": "Rules for generating fixed-size cluster recommendations based on worker count and utilization",
+    
+    "worker_count_breakpoints": {
+      "single": 1,
+      "small": 4,
+      "medium": 8,
+      "medium_large": 6,
+      "large": 10
+    },
+
+    "idle_rules": {
+      "utilization_threshold": 5,
+      "single_worker": {
+        "recommendation_template": "CRITICAL: Idle cluster. Terminate if unused or keep for on-demand dev work"
+      },
+      "small_cluster": {
+        "max_workers": 4,
+        "reduce_to": 1,
+        "savings_calculation": "((worker_count - 1) / worker_count) * 100",
+        "recommendation_template": "CRITICAL: Idle. Reduce from {worker_count} to 1 worker ({savings}% savings) or terminate"
+      },
+      "large_cluster": {
+        "min_workers": 5,
+        "reduce_to_range": [1, 2],
+        "autoscaling_alternative": [1, 2],
+        "savings_estimate_range": [70, 85],
+        "recommendation_template": "CRITICAL: Idle. Reduce from {worker_count} to 1-2 workers OR enable autoscaling 1-2 ({savings_min}-{savings_max}% savings)"
+      }
+    },
+
+    "low_utilization_rules": {
+      "utilization_threshold": 15,
+      "single_worker": {
+        "recommendation_template": "LOW: Light usage appropriate for dev/test. Keep as-is"
+      },
+      "up_to_4_workers": {
+        "reduce_by": 2,
+        "min_result": 1,
+        "savings_calculation": "2 / worker_count * 100",
+        "recommendation_template": "HIGH: Low utilization. Reduce from {worker_count} to {target} workers ({savings}% savings)"
+      },
+      "5_to_8_workers": {
+        "reduce_to_factor": 0.5,
+        "min_result": 2,
+        "autoscaling_max_factor": 0.5,
+        "recommendation_template": "HIGH: Over-provisioned. Reduce to {target} workers OR enable autoscaling 1-{as_max}"
+      },
+      "9_plus_workers": {
+        "reduce_to_factor": 0.33,
+        "min_result": 3,
+        "autoscaling_max_factor": 0.5,
+        "autoscaling_max_cap": 8,
+        "recommendation_template": "CRITICAL: Severely over-provisioned. Reduce to {target} workers OR enable autoscaling 2-{as_max}"
+      }
+    },
+
+    "under_utilized_rules": {
+      "utilization_threshold": 50,
+      "up_to_3_workers": {
+        "autoscaling_max_offset": 1,
+        "recommendation_template": "LOW: Acceptable for small cluster. Consider autoscaling 1-{as_max} for cost flexibility"
+      },
+      "4_to_6_workers": {
+        "reduce_by": 2,
+        "min_result": 2,
+        "recommendation_template": "MEDIUM: Under-utilized. Reduce to {target} workers OR enable autoscaling {target}-{worker_count}"
+      },
+      "7_plus_workers": {
+        "reduce_to_factor": 0.6,
+        "min_result": 4,
+        "recommendation_template": "HIGH: Under-utilized. Reduce from {worker_count} to {target} workers OR enable autoscaling {target}-{worker_count}"
+      }
+    },
+
+    "well_utilized_rules": {
+      "utilization_threshold": 80,
+      "up_to_4_workers": {
+        "recommendation_template": "LOW: Optimal sizing for workload. No action needed"
+      },
+      "5_to_8_workers": {
+        "autoscaling_min_offset": -2,
+        "autoscaling_max_offset": 2,
+        "min_result": 2,
+        "recommendation_template": "LOW: Well-sized. Optional: Enable autoscaling {as_min}-{as_max} for flexibility"
+      },
+      "9_plus_workers": {
+        "autoscaling_min_factor": 0.6,
+        "autoscaling_max_factor": 1.3,
+        "min_result": 4,
+        "recommendation_template": "MEDIUM: Well-utilized. Consider autoscaling {as_min}-{as_max} to optimize costs during low-demand"
+      }
+    },
+
+    "high_utilization_rules": {
+      "utilization_threshold": 80,
+      "single_worker": {
+        "add_workers": 1,
+        "autoscaling_max": 3,
+        "recommendation_template": "HIGH: Under-provisioned. Add 1 worker (fixed 2) OR enable autoscaling 1-3"
+      },
+      "2_to_3_workers": {
+        "add_workers": 1,
+        "autoscaling_max_factor": 2.0,
+        "recommendation_template": "HIGH: Under-provisioned. Add 1 worker (fixed {target}) OR enable autoscaling {worker_count}-{as_max}"
+      },
+      "4_to_6_workers": {
+        "add_workers": 2,
+        "autoscaling_max_factor": 1.5,
+        "recommendation_template": "HIGH: Under-provisioned. Add {add_nodes} workers (fixed {target}) OR enable autoscaling {worker_count}-{as_max}"
+      },
+      "7_to_10_workers": {
+        "add_workers": 3,
+        "autoscaling_max_factor": 1.4,
+        "recommendation_template": "HIGH: Under-provisioned. Add {add_nodes} workers (fixed {target}) OR enable autoscaling {worker_count}-{as_max}"
+      },
+      "11_plus_workers": {
+        "add_workers_factor": 0.25,
+        "autoscaling_max_factor": 1.3,
+        "recommendation_template": "CRITICAL: Under-provisioned. Add {add_nodes} workers (fixed {target}) OR enable autoscaling {worker_count}-{as_max}"
+      }
+    }
+  },
+
+  "recommendation_severity_levels": {
+    "description": "Severity levels used in recommendations (informational only, not used for priority column)",
+    "levels": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+    "note": "These keywords appear in recommendation text but do not generate separate priority column"
+  },
+
+  "vm_size_recommendations": {
+    "description": "VM sizing recommendations based on cluster utilization category",
+    
+    "category_recommendations": {
+      "Idle": {
+        "primary": "TERMINATE - Cluster is idle (<5% utilization)",
+        "secondary": []
+      },
+      "Low Utilization": {
+        "primary": "DOWNSIZE - Reduce VM size by 50-75%",
+        "secondary": ["Consider converting to job cluster"]
+      },
+      "Under-utilized": {
+        "primary": "RIGHT-SIZE - Reduce VM size by 25-50%",
+        "secondary": ["Enable autoscaling if not enabled"]
+      },
+      "Well-utilized": {
+        "primary": "OPTIMAL - Continue monitoring",
+        "secondary": ["Consider Photon for performance boost"]
+      },
+      "Moderate (70-80%)": {
+        "primary": "MONITOR - Watch for scale-up needs",
+        "secondary": ["Enable autoscaling for flexibility"]
+      },
+      "High Utilization": {
+        "primary": "SCALE UP - Increase VM size by 50%",
+        "secondary": ["Enable autoscaling + Photon + AQE"]
+      },
+      "Unknown": {
+        "primary": "Review utilization patterns",
+        "secondary": []
+      }
+    },
+
+    "vm_series_guidance": {
+      "description": "Azure VM series-specific recommendations based on workload characteristics",
+      "E": "VM: Memory-optimized (E-series) for shuffle-heavy workloads",
+      "F": "VM: Compute-optimized (F-series) for streaming & full-scan ELT",
+      "L": "VM: Storage-optimized (L-series) for Delta Cache",
+      "D": "VM: General purpose (D-series) for standard workloads"
+    },
+
+    "fallback_recommendation": "Review utilization patterns and adjust VM size if needed"
+  }
+}

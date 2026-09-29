@@ -1,0 +1,1 @@
+DESCRIBE HISTORY IDENTIFIER(:table_name)

@@ -1,0 +1,191 @@
+{
+  "assessment-manifest.json": {
+    "schemaVersion": "1.0",
+    "runId": "fixture-run",
+    "analysisWindow": {
+      "startUtc": "2026-01-01T00:00:00Z",
+      "endUtc": "2026-02-01T00:00:00Z",
+      "timeZone": "UTC"
+    },
+    "scope": {
+      "subscriptions": ["sub-1"],
+      "resourceGroups": ["rg-1"],
+      "workspaces": ["adb.example.test"]
+    }
+  },
+  "source-inventory.json": {
+    "schemaVersion": "1.0",
+    "sources": {
+      "raw/azure/cost-management.ndjson": {
+        "recordCount": 2,
+        "parseErrorCount": 0,
+        "mappedEntity": "azure_cost"
+      },
+      "raw/databricks/ws/spark-selected-runs.ndjson": {
+        "recordCount": 1,
+        "parseErrorCount": 0,
+        "mappedEntity": null
+      }
+    }
+  },
+  "cost-reconciliation.json": {
+    "schemaVersion": "1.0",
+    "reportingBasis": "ActualCost",
+    "currency": "USD",
+    "currencyAggregationAllowed": true,
+    "taxIncluded": null,
+    "authoritativeTotals": {"ActualCost": 150.0},
+    "authoritativeTotal": 150.0,
+    "collectedTotal": 150.0,
+    "matchedCost": 100.0,
+    "unmatchedCost": 50.0,
+    "allocatedSharedCost": 0.0,
+    "excludedCost": 0.0,
+    "varianceAmount": 0.0,
+    "variancePercent": 0.0,
+    "withinTolerance": true,
+    "duplicatePrevention": {
+      "rule": "Serverless DBU includes infrastructure; explicit serverless VM estimates are never additive."
+    },
+    "limitations": []
+  },
+  "telemetry-quality.json": {
+    "schemaVersion": "1.0",
+    "overall": {
+      "score": 0.7,
+      "level": "medium",
+      "missingRequiredMetrics": []
+    },
+    "sources": [
+      {
+        "source": "raw/azure/cost-management.ndjson",
+        "score": 1.0,
+        "level": "high",
+        "missingRequiredMetrics": []
+      }
+    ]
+  },
+  "attribution-coverage.json": {
+    "schemaVersion": "1.0",
+    "resourceCount": 2,
+    "attributedResourceCount": 1,
+    "resourceCoveragePercent": 50.0,
+    "totalSpend": 150.0,
+    "attributedSpend": 100.0,
+    "spendCoveragePercent": 66.6667
+  },
+  "optimization-candidates.json": {
+    "schemaVersion": "1.0",
+    "candidateCount": 1,
+    "insufficientEvidenceCount": 1,
+    "findings": [
+      {
+        "schemaVersion": "1.0",
+        "detectorId": "MON-UNOWNED-COST",
+        "category": "monitor-and-control-cost",
+        "status": "candidate",
+        "title": "Material cost lacks accountable ownership",
+        "recommendedAction": "Assign an accountable owner.",
+        "evidence": [{"sourceIdentifier": "cost-2", "cost": 50.0}],
+        "confidence": {"score": 0.8, "level": "medium", "missingRequiredMetrics": []},
+        "limitations": [],
+        "estimatedSavings": null,
+        "savingsCurrency": null,
+        "humanValidationRequired": true
+      },
+      {
+        "schemaVersion": "1.0",
+        "detectorId": "DYN-AUTOSCALING",
+        "category": "dynamically-allocate-resources",
+        "status": "insufficient_evidence",
+        "title": "Dynamic allocation cannot be assessed",
+        "recommendedAction": "Collect and validate cluster inventory and node timeline.",
+        "evidence": [],
+        "confidence": {"score": 0.0, "level": "insufficient", "missingRequiredMetrics": ["coverage"]},
+        "limitations": ["Missing minimum evidence: cluster inventory and node timeline."],
+        "estimatedSavings": null,
+        "savingsCurrency": null,
+        "humanValidationRequired": true
+      }
+    ]
+  },
+  "backlog-import.json": {
+    "schemaVersion": "1.0",
+    "items": [
+      {"externalId": "MON-UNOWNED-COST", "status": "proposed"},
+      {"externalId": "DYN-AUTOSCALING", "status": "proposed"}
+    ]
+  },
+  "benefits-baseline.json": {
+    "schemaVersion": "1.0",
+    "baselineId": "fixture-run:v1",
+    "reportingBasis": "ActualCost",
+    "authoritativeCost": 150.0,
+    "currency": "USD",
+    "workloadNormalization": {
+      "method": "none",
+      "reason": "No approved workload normalization factor was supplied."
+    },
+    "realizedSavings": null
+  },
+  "errors.json": {
+    "schemaVersion": "1.0",
+    "errors": [
+      {
+        "kind": "missing_source",
+        "source": "raw/databricks/ws/query-history.ndjson",
+        "message": "Query history was not supplied."
+      }
+    ]
+  },
+  "normalized": {
+    "azure_cost": [
+      {
+        "sourceIdentifier": "cost-1",
+        "normalized": {
+          "ResourceName": "workspace-a",
+          "PreTaxCost": 100.0,
+          "Currency": "USD",
+          "tags": {"Owner": "team-a"}
+        }
+      },
+      {
+        "sourceIdentifier": "cost-2",
+        "normalized": {
+          "ResourceName": "workspace-b",
+          "PreTaxCost": 50.0,
+          "Currency": "USD",
+          "tags": {}
+        }
+      }
+    ],
+    "azure_resource": [
+      {
+        "sourceIdentifier": "/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Databricks/workspaces/workspace-a",
+        "normalized": {
+          "name": "workspace-a",
+          "resourceGroup": "rg-1"
+        }
+      }
+    ],
+    "workspace": [
+      {
+        "sourceIdentifier": "123",
+        "normalized": {
+          "workspaceName": "workspace-a",
+          "resourceGroup": "rg-1"
+        },
+        "correlation": {"status": "matched"}
+      }
+    ],
+    "compute": [
+      {
+        "sourceIdentifier": "cluster-1",
+        "normalized": {
+          "cluster_source": "UI",
+          "autotermination_minutes": 60
+        }
+      }
+    ]
+  }
+}

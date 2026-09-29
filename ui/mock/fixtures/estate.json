@@ -1,0 +1,186 @@
+[
+  {
+    "displayName": "Contoso Data Platform (Production)",
+    "resourceGroups": [
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-databricks-platform-prod",
+        "resourceGroupId": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/rg-databricks-platform-prod",
+        "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+        "workspaces": [
+          {
+            "location": "eastus",
+            "managedResourceGroup": "mrg-databricks-platform-prod",
+            "name": "dbw-platform-prod",
+            "resourceGroup": "rg-databricks-platform-prod",
+            "sku": "premium",
+            "sqlWarehouses": [
+              {
+                "id": "19dfff78c4e639c4",
+                "name": "wh-bi-serving",
+                "serverless": true,
+                "size": "Medium",
+                "state": "RUNNING"
+              },
+              {
+                "id": "2a71c5be90ab3317",
+                "name": "wh-adhoc-analysts",
+                "serverless": true,
+                "size": "2X-Small",
+                "state": "STOPPED"
+              }
+            ],
+            "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+            "workspaceId": "7405608792310779",
+            "workspaceUrl": "adb-7405608792310779.79.azuredatabricks.net"
+          }
+        ]
+      },
+      {
+        "isManagedResourceGroup": true,
+        "location": "eastus",
+        "name": "mrg-databricks-platform-prod",
+        "resourceGroupId": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/mrg-databricks-platform-prod",
+        "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+        "workspaces": []
+      },
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-databricks-platform-nonprod",
+        "resourceGroupId": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/rg-databricks-platform-nonprod",
+        "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+        "workspaces": [
+          {
+            "location": "eastus",
+            "managedResourceGroup": "mrg-databricks-platform-nonprod",
+            "name": "dbw-platform-nonprod",
+            "resourceGroup": "rg-databricks-platform-nonprod",
+            "sku": "premium",
+            "sqlWarehouses": [
+              {
+                "id": "77c0e41ab2d95f18",
+                "name": "wh-dev-sql",
+                "serverless": true,
+                "size": "X-Small",
+                "state": "STOPPED"
+              }
+            ],
+            "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+            "workspaceId": "5518204771003326",
+            "workspaceUrl": "adb-5518204771003326.26.azuredatabricks.net"
+          }
+        ]
+      },
+      {
+        "isManagedResourceGroup": true,
+        "location": "eastus",
+        "name": "mrg-databricks-platform-nonprod",
+        "resourceGroupId": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/mrg-databricks-platform-nonprod",
+        "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+        "workspaces": []
+      },
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-shared-networking",
+        "resourceGroupId": "/subscriptions/463a82d4-1896-4332-aeeb-618ee5a5aa93/resourcegroups/rg-shared-networking",
+        "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+        "workspaces": []
+      }
+    ],
+    "state": "Enabled",
+    "subscriptionId": "463a82d4-1896-4332-aeeb-618ee5a5aa93",
+    "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b"
+  },
+  {
+    "displayName": "Contoso Analytics",
+    "resourceGroups": [
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-analytics-edw",
+        "resourceGroupId": "/subscriptions/8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411/resourcegroups/rg-analytics-edw",
+        "subscriptionId": "8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411",
+        "workspaces": [
+          {
+            "location": "eastus",
+            "managedResourceGroup": "mrg-analytics-edw",
+            "name": "dbw-analytics-edw",
+            "resourceGroup": "rg-analytics-edw",
+            "sku": "premium",
+            "sqlWarehouses": [
+              {
+                "id": "b1d4f9cc72ae5630",
+                "name": "wh-edw-reporting",
+                "serverless": false,
+                "size": "Large",
+                "state": "RUNNING"
+              }
+            ],
+            "subscriptionId": "8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411",
+            "workspaceId": "3390118246557742",
+            "workspaceUrl": "adb-3390118246557742.42.azuredatabricks.net"
+          }
+        ]
+      },
+      {
+        "isManagedResourceGroup": true,
+        "location": "eastus",
+        "name": "mrg-analytics-edw",
+        "resourceGroupId": "/subscriptions/8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411/resourcegroups/mrg-analytics-edw",
+        "subscriptionId": "8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411",
+        "workspaces": []
+      },
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-analytics-archive",
+        "permissionIssue": "Reader role is not assigned to the signed-in principal. Resources in this group cannot be collected.",
+        "resourceGroupId": "/subscriptions/8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411/resourcegroups/rg-analytics-archive",
+        "subscriptionId": "8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411",
+        "workspaces": []
+      }
+    ],
+    "state": "Enabled",
+    "subscriptionId": "8c1f0d4a-91b7-4d2e-9a53-6f0b2c7e4411",
+    "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b"
+  },
+  {
+    "displayName": "Contoso Data Science Sandbox",
+    "resourceGroups": [
+      {
+        "isManagedResourceGroup": false,
+        "location": "eastus",
+        "name": "rg-datascience-sandbox",
+        "resourceGroupId": "/subscriptions/d27b5e93-7a10-4c68-b3f4-52e9c8a10d77/resourcegroups/rg-datascience-sandbox",
+        "subscriptionId": "d27b5e93-7a10-4c68-b3f4-52e9c8a10d77",
+        "workspaces": [
+          {
+            "location": "eastus",
+            "managedResourceGroup": "mrg-datascience-sandbox",
+            "name": "dbw-ds-sandbox",
+            "resourceGroup": "rg-datascience-sandbox",
+            "sku": "premium",
+            "sqlWarehouses": [],
+            "subscriptionId": "d27b5e93-7a10-4c68-b3f4-52e9c8a10d77",
+            "workspaceId": "9021774365118820",
+            "workspaceUrl": "adb-9021774365118820.20.azuredatabricks.net"
+          }
+        ]
+      },
+      {
+        "isManagedResourceGroup": true,
+        "location": "eastus",
+        "name": "mrg-datascience-sandbox",
+        "resourceGroupId": "/subscriptions/d27b5e93-7a10-4c68-b3f4-52e9c8a10d77/resourcegroups/mrg-datascience-sandbox",
+        "subscriptionId": "d27b5e93-7a10-4c68-b3f4-52e9c8a10d77",
+        "workspaces": []
+      }
+    ],
+    "state": "Enabled",
+    "subscriptionId": "d27b5e93-7a10-4c68-b3f4-52e9c8a10d77",
+    "tenantId": "5bb5fa45-2dcc-4310-bbc5-883021e9d84b"
+  }
+]
