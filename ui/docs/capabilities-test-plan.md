@@ -4,6 +4,9 @@ Date: 2026-09-29. Backend: `2026.09.29.1`.
 Scope: the [initial implementation described in the user guide](../USER-GUIDE.md),
 not every future enhancement in the [broader UI plan](../../docs/ScannerAnalyzer-UI-Modification-Plan.md).
 
+Results below are dated executions. Follow-up suites overlap and must not be added
+together; documentation updates do not constitute new test or live-collection runs.
+
 ## Outcome and evidence boundaries
 
 **PASS for the implemented local workflows and regression suites.**
@@ -189,7 +192,7 @@ Reproduce the focused browser check after building:
 python .\ui\tests\collection_status_e2e.py
 ```
 
-## Follow-up: minimal review/export and current blog recordings
+## Follow-up: minimal review/export and original blog recordings
 
 Executed 2026-09-29 against the rebuilt production UI. The workflow now has five
 steps, ending in **Review & export**. Report download and preview are immediate;
@@ -202,10 +205,10 @@ Downloads do not approve pending findings.
 | Full UI regression suite | **169 passed, 20 files** |
 | TypeScript / Vite / self-contained production build | PASS; existing bundle-size warning only |
 | Playwright production-stack capability journey | **18 grouped checks passed**, zero page errors |
-| Four-stage Playwright recording | PASS; five sidebar steps, explicit Validate/Run actions, capability views in both themes, download without review |
+| Original four-stage Playwright recording | PASS at capture time; five sidebar steps, explicit Validate/Run actions, capability views in both themes, download without review |
 | Running local host on port 8765 | PASS; five-step navigation, visible Download report, collapsed review, no write requests |
-| Media inspection | All GIF frames decode; first/middle/last frames and five full-size stills visually inspected |
-| Blog links | All 11 local media links resolve; exactly the four requested current GIFs |
+| Original media inspection | All original GIF frames decoded; first/middle/last frames and five full-size stills were visually inspected |
+| Original blog links | At capture time, all 11 local media links resolved, including four workflow GIFs; the blog and assets have since changed |
 
 The new [review/export regression tests](../tests/reviewExport.test.tsx) cover
 export without review, saving a single decision while preserving historical detail
@@ -213,34 +216,44 @@ and other findings, required-reviewer validation, visible persistence errors wit
 retryable drafts, and blocking reload-causing workbook actions until edits are saved
 or discarded. Workflow regressions check completion on download, not mandatory sign-off.
 
-The [recording script](../../blog/capture-ui-walkthroughs.py) uses the production UI,
+The [recording script](../../blog/capture-ui-walkthroughs.py) used the production UI,
 local HTTP API and analysis pipeline with an isolated synthetic collection service.
-Every frame is labeled DEMO DATA. Timings are replayed for readability, not measured
-cloud performance. Recorded browser errors and external requests are both empty.
-No customer snapshot, grant, cloud collection or live publication was changed.
+Its original frames were labeled DEMO DATA, with timings replayed for readability.
+Recorded browser errors and external requests were empty. No customer snapshot,
+grant, cloud collection or live publication was changed by that capture.
 
-All four GIFs are **1440 x 978**, including captions, and below 1 MiB each:
+The following figures describe those **original**, now-replaced recordings, not
+the files currently linked from the blog. All four were 1440 x 978 and below 1 MiB:
 
 | Clip | Encoded frames | Duration | Bytes |
 | --- | --- | --- | --- |
-| [Configure](../../blog/assets/01-configure.gif) | 11 | 16.28 s | 616,646 |
-| [Validate](../../blog/assets/02-validate.gif) | 11 | 14.02 s | 633,218 |
-| [Run analysis](../../blog/assets/03-run-analysis.gif) | 11 | 13.10 s | 570,651 |
-| [Visualize results](../../blog/assets/04-visualize-results.gif) | 12 | 19.14 s | 769,393 |
+| Configure | 11 | 16.28 s | 616,646 |
+| Validate | 11 | 14.02 s | 633,218 |
+| Run analysis | 11 | 13.10 s | 570,651 |
+| Visualize results | 12 | 19.14 s | 769,393 |
 
-GIF encoding merges identical adjacent captured frames while preserving their total
-duration. The [recording metadata](../../blog/assets/walkthrough-recording.json)
-distinguishes captured from encoded frame counts. The
-[merged-step still](../../blog/assets/review-export.png) shows immediate downloads and
-the collapsed optional review.
+Original capture metadata and the merged-step still are no longer present under
+the current asset paths. The current walkthrough uses five replacement GIFs:
 
-Reproduce the browser journey and media capture after building, with the existing
-Python Playwright/Chromium and Pillow dependencies:
+- [Configure](../../blog/assets/01-configure.gif)
+- [Validate](../../blog/assets/02-validate.gif)
+- [Run analysis](../../blog/assets/03-run-analysis.gif)
+- [Visualize results](../../blog/assets/04-visualize-results.gif)
+- [Review & export](../../blog/assets/05-review-export.gif)
+
+Do not apply the original dimensions, timings, or DEMO DATA assurances to these
+replacement files. Inspect them for environment identifiers before publication.
+
+Reproduce the browser journey after building, with the existing Python
+Playwright/Chromium dependencies:
 
 ```powershell
 python .\ui\tests\capabilities_e2e.py
-python .\blog\capture-ui-walkthroughs.py
 ```
+
+The recording script remains available for deliberate synthetic recapture with
+Pillow, but writes to current blog asset paths. Do not run it as a verification
+step or overwrite curated recordings unintentionally.
 
 ## Follow-up: rendered report preview and direct navigation
 
@@ -314,7 +327,7 @@ Do not interpret green local tests as proof of:
 
 - Live optional asset API availability, tenant permissions, throttling behavior or concurrency performance.
 - Live Lakeview payload acceptance/rendering in a specifically authorized destination.
-- Full scanner posture-category/check parity, published detailed analytics datasets, or
+- A full posture-control catalog, published detailed analytics datasets, or
   automatically derived financially authoritative commitment demand.
 - A new pre-run per-module permission matrix, dedicated local-operation cancellation, or
   complete URL persistence of every filter/subview.

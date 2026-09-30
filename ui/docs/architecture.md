@@ -3,9 +3,9 @@
 ## Principle
 
 The existing PowerShell + Python toolkit is the assessment engine. This UI orchestrates and
-visualizes it. Nothing in `/ui` re-derives a cost figure, re-implements a detector, or
-invents a status value — it renders what the backend produced and refuses to render what
-the backend did not collect.
+visualizes it. React does not re-implement financial calculations or detectors.
+The Python host adapts saved data and derives display summaries; assessment rules
+remain in the existing engine. Missing measurements remain unavailable, not invented.
 
 That principle is enforced structurally by a single seam.
 
@@ -42,7 +42,9 @@ boundaries, and the [acceptance record](capabilities-test-plan.md) for verificat
 
 ## The seam: `src/api/backend.ts`
 
-Every piece of data the UI displays arrives through one interface:
+Assessment data and operations pass through one interface. This is an abbreviated
+view; [backend.ts](../src/api/backend.ts) also defines sign-in, permission setup,
+approval, progress, and artifact payload contracts:
 
 ```ts
 interface AssessmentBackend {
@@ -51,9 +53,11 @@ interface AssessmentBackend {
   validate(config, approvals, onProgress?): Promise<ValidationReport>; // live checks, then report
   startRun(config, approvals): Promise<RunHandle>;          // streams RunEvent
   listRuns(): Promise<RunSummary[]>;
+  deleteSnapshots(runIds: string[]): Promise<SnapshotDeletion>;
   loadResults(runId): Promise<AssessmentResults>;
   saveReview(runId, entries): Promise<void>;
   readArtifact(runId, relativePath): Promise<ArtifactPayload>;
+  capabilityOperation<T>(runId: string | null, action: string, input: object): Promise<T>;
 }
 ```
 
@@ -61,28 +65,32 @@ interface AssessmentBackend {
 status, log line, completion) plus `cancel()`.
 
 The approved demo uses `mockBackend.ts`, backed by deterministic JSON in `mock/fixtures/`.
-Production uses `httpBackend.ts` with the local API. No feature component, store, or chart
-knows which one is active; a production URL can opt into the offline demo with `?mock=1`.
+Production uses `httpBackend.ts` with the local API. Feature components and stores
+use the same interface; a production URL can opt into the offline demo with `?mock=1`.
+The legacy demo does not emulate all new capability operations. Components can use
+the adapter's `isMock` flag to hide live-only actions.
 
 ## Layers
 
 ```
 src/
   types/        Contracts only. assessment | config | findings | results | validation.
-  api/          The backend seam + the Phase 1 mock implementation.
+  api/          The backend seam, production HTTP adapter, and fixture-backed mock.
   lib/          format.ts (absent-vs-zero, status→tone), validation.ts (guard mirror).
   state/        Zustand stores: configStore, runStore, resultsStore (+ filter selectors).
   components/   Presentation primitives: Panel, KpiCard, Badge, DataTable, Tabs, Drawer,
                 GuardrailStrip, ErrorBoundary, charts/.
   features/     One folder per workflow step: configure, validate, run, results, review,
-                export. Results is tabbed: Executive, Cost, Compute, Findings, Quality,
-                Roadmap.
+                export. Review is composed inside the final Review & export step.
+                Results: Executive summary, Cost analysis, Compute and SQL, Queries,
+                Posture, Assets, Findings, Evidence quality, Roadmap.
   app/          App.tsx — workflow shell, step gating, scenario switcher.
   styles/       tokens → components → layout, aggregated by global.css.
 ```
 
 Dependencies point downward only: `features` → `state` → `api` → `types`, with `lib` and
-`components` available to any layer above them. No feature imports another feature.
+`components` available to any layer above them. Workflow composition can reuse a
+feature, such as Export rendering the optional Review form.
 
 ## Two rules that shaped the code
 
@@ -95,15 +103,15 @@ failed source instead. The `fabrikam-failed` scenario exists to keep this honest
 **The five statuses are not three.** `passed`, `partial`, `failed`, `pending telemetry` and
 `skipped` each carry a distinct meaning taken from the spec, and `STATUS_MEANING` in
 `lib/format.ts` is the single place that explains them to a user. `pending telemetry` in
-particular is neither a failure nor a zero — it means the signal exists but the window
-hasn't accumulated it yet. Collapsing these into pass/fail was the most tempting
-simplification available and would have been the most damaging.
+particular is neither a failure nor a zero. It can mean missing source configuration,
+unavailable access/telemetry, or data that has not arrived yet. The source limitation
+explains which case applies; final red/green summaries do not replace these statuses.
 
 ## Validation mirror
 
-`lib/validation.ts` reproduces the CLI's guard clauses — scope required, window bounded,
-SQL Warehouse auto-start approval, output root writable — so the UI can never offer to
-launch something `Invoke-Assessment.ps1` would refuse. It is a *mirror*, not the authority:
+`lib/validation.ts` checks scope, date bounds, output settings, rules, and SQL Warehouse
+approval before calling the backend. A non-empty output path is not a filesystem
+writability test. These checks complement CLI guards; they do not replace them:
 Production calls `-Action Readiness` and uses the real result. If the two ever disagree,
 the backend wins and the UI is wrong.
 
@@ -117,10 +125,11 @@ an empty or success-shaped report without progress remains an error.
 
 ## Testing
 
-The frontend has 60 tests across 11 files, covering formatting, validation, filters, themes,
-workflow navigation and completion, warning lists, mock contract conformance, and the HTTP
-adapter. The Python host has 15 tests covering CLI arguments, SQL approval behavior, path
-containment, progress parsing, plain-English warning handling, review export, and real artifact mapping.
+Frontend tests cover validation, filters, themes, workflow, snapshots, optional review,
+capabilities, report preview, and adapters. Python tests cover orchestration, permission
+setup, source mapping, import/re-analysis, workbooks, and publication boundaries.
+Use the dated [execution record](capabilities-test-plan.md) for measured counts and
+live-test limits rather than treating an old suite count as the current inventory.
 
 `mockBackend.test.ts` has two conventions worth keeping: the mock adds ~480 ms of
 artificial latency per call, so tests that loop over artifacts need an explicit timeout; and
@@ -139,17 +148,18 @@ serves the self-contained `dist/index.html` and exposes these same-origin routes
 | `GET /api/health` | Host readiness |
 | `GET /api/config/default` | Existing local → workshop → example config precedence |
 | `GET /api/estate` | Azure subscriptions, resource groups, and Databricks workspaces |
+| `POST /api/auth/login` | Explicit Azure CLI sign-in |
 | `POST /api/validate` | Read-only readiness with the selected approvals |
 | `POST /api/validations` | Start a background readiness job; return its ID immediately |
 | `GET /api/validations/{id}` | Live check list, activity timestamps, terminal report or error |
 | `POST /api/runs` | Start `Invoke-Assessment.ps1 -Action Run` |
 | `GET /api/runs/{id}/events` | Poll bounded progress and source-status events |
 | `DELETE /api/runs/{id}` | Cancel the tracked child process |
-| `GET /api/runs` | List completed persisted runs |
+| `GET /api/runs` | List persisted assessments, imports, and child analyses, including partial/failed results |
 | `POST /api/snapshots/delete` | Permanently delete explicitly confirmed `runIds`; return `deletedRunIds` and per-run `failures`. Separate from cancellation. |
 | `GET /api/runs/{id}/results` | Map persisted artifacts into `AssessmentResults` |
 | `PUT /api/runs/{id}/review` | Atomically persist human decisions |
-| `GET /api/runs/{id}/artifacts/{path}` | Read a contained text artifact for export |
+| `GET /api/runs/{id}/artifacts/{path}` | Read a contained artifact; text or base64-encoded XLSX with MIME type |
 
 The host uses the operator's ambient `az login`; it stores no credentials. Every run uses a
 temporary JSON config with the existing schema. The PowerShell wrapper remains responsible
@@ -182,6 +192,12 @@ Review & export requires a download, not full sign-off. Its collapsed review for
 updates selected decision/reviewer/note fields while retaining the remaining record.
 Workbook/publication actions cannot reload results while review edits are unsaved.
 An active, failed, or canceled run is not made green by an older loaded snapshot.
+
+Review saves update `.ui-review.json` and the sign-off CSV without regenerating the
+Markdown report. **Preview report** focuses and scrolls to a loading/error/content
+region. Markdown renders with tables and section navigation; supporting artifact
+links open local previews. Remote images and raw HTML are omitted, and request
+sequencing prevents a late response from replacing a closed or newer preview.
 
 Validation uses a worker thread so HTTP requests remain responsive while PowerShell reads
 source evidence. `ASSESSMENT_UI_PROGRESS=1` enables structured `AssessmentProgress:` lines.
@@ -277,10 +293,10 @@ asks for the exact metastore ID, and issues a single
 `{"metastore_info":{"owner":"<verified-principal>"}}`. This optional broad, persistent role
 change is explicitly distinguished from the three read grants and is never sent by the UI.
 
-`ValidationActions` is shared by the main validation footer and the green permission
-result's next-step section. Both preserve rerun confirmation, require full validation
-before continuing, and block actions during discovery, sign-in, permission work, validation,
-or collection. Continue navigates to Run analysis; it does not start collection.
+`ValidationActions` is reused for the validation button above progress and the single
+Continue action below permission content. App suppresses the embedded pages' duplicate
+footers. Actions preserve rerun confirmation and operation locks; Continue requires
+acceptable validation and navigates to Run analysis without starting collection.
 
 The frontend polls status without resubmitting statements. Lost apply responses remain
 unknown until status recovery or explicit operator acknowledgement after inspection. Setup

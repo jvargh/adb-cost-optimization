@@ -1,12 +1,26 @@
 # Validation and requirement traceability
 
-The [consolidated end-to-end specification](../../AzureDatabricksCostOptimizationEndToEndSpecification.md) is the current requirements and post-implementation disposition. Detailed execution evidence is retained in [test-results.md](../test-results.md).
+The [consolidated end-to-end specification](../../docs/AzureDatabricksCostOptimizationEndToEndSpecification.md) records requirements and implementation disposition. Assessment execution evidence is retained in [test-results.md](../test-results.md); later capability/UI evidence is in the [UI acceptance record](../../ui/docs/capabilities-test-plan.md).
+
+Documentation checked against the implementation on **2026-09-29**. The execution
+counts below remain dated records, not fresh results from this documentation check.
 
 ## Validated evidence
 
-Validation date: **2026-09-26 UTC**
+### Capability and workflow follow-ups: 2026-09-29
 
-### Latest scope-selection validation
+The [UI acceptance record](../../ui/docs/capabilities-test-plan.md) reports:
+
+- Initial capability delivery: 474 tests across frontend, Python, and Pester suites,
+  plus 18 grouped production-stack browser checks.
+- Five-step workflow/review-export follow-up: 169 frontend tests across 20 files.
+- Report-preview follow-up: 42 targeted tests across 5 files, plus 6 grouped browser checks.
+
+These overlapping runs must not be added together. Optional asset collection and
+publication were tested locally with mocked APIs; live dashboard rendering remains
+unverified. Saved-native compatibility checks did not recollect cloud evidence.
+
+### Historical scope-selection validation: 2026-09-26
 
 | Evidence | Result |
 | --- | --- |
@@ -23,7 +37,8 @@ Validation date: **2026-09-26 UTC**
 
 ### Earlier live-run evidence
 
-The following metrics describe an earlier run before the final reporting and scope changes. Older test-count summaries are superseded by the current totals above.
+The following metrics describe an earlier run before the reporting and scope changes.
+They are historical evidence, not the current test inventory.
 
 | Evidence | Result |
 | --- | --- |
@@ -60,6 +75,11 @@ Before acceptance, record:
 
 Savings remain unknown until an approved change has comparable before/after evidence and workload normalization.
 
+The UI provides a compact optional decision/reviewer/note form in **Review & export**.
+Downloading is not approval. Richer handoff fields still belong in the review
+process above; saving a UI decision preserves existing fields but does not require
+every handoff field to be completed.
+
 ## Implementation traceability
 
 Status meanings:
@@ -72,23 +92,23 @@ Status meanings:
 | Requirement area | Status | Evidence and boundary |
 | --- | --- | --- |
 | Sections 2-3: goals and read-only boundary | Partial | End-to-end collection/model/report flow and method allowlists are implemented. Broad catalog goals remain incomplete. |
-| Section 4: operating modes | Partial | Standard, collection-only readiness approximation, domain skips, direct-Python offline analysis, and repeated independent runs are supported. No first-class mode selector or automated cross-run benefits comparator exists. |
+| Section 4: operating modes | Partial | Native collection, bounded-cost readiness, domain skips, direct-Python offline analysis, UI raw import, child re-analysis, saved snapshots, and repeated runs are supported. No automated cross-run benefits comparator exists. |
 | Section 5: scope configuration | Implemented/Partial | Interactive/explicit multi-subscription/group selection, qualified IDs, workspace discovery, all selected cost scopes, SQL identifier isolation, and run config snapshots are implemented. Exclusion lists, management groups, business scopes, sampling contracts, retention, and config schema version remain incomplete. |
 | Sections 6.1-6.2: Azure inventory/cost | Partial | Resource Graph, ARM workspace detail, managed resources, tags, policy, diagnostics, quota, Actual/Amortized query, budgets, reservations, and Savings Plans are collected. Forecast, tag history, commitment utilization/coverage, detailed storage/network allocation, and checkpoints are deferred. |
 | Sections 6.3-6.5: account/workspace, billing, attribution | Partial | Workspace/account inventory, settings, metastore, IP lists, optional groups, billing/list prices, selected tags, and audit SQL exist. Live system-table collection requires a configured warehouse; normalized attribution currently uses Azure cost tags. |
-| Sections 6.6-6.9: compute, jobs, SQL, Spark | Partial | Cluster/policy/pool/event, Jobs/runs/pipelines, SQL Warehouse, query history, node timeline, and selected-run metadata collectors exist. Full utilization, Spark UI/event-log metrics, cost-per-workload, and many required aggregations are deferred. |
-| Sections 6.10-6.11: Delta and code/query patterns | Partial/Deferred | UC tables, information schema, and selected table detail/history collection exist. File-distribution normalization and code/notebook scanning are deferred. |
-| Sections 6.12-6.14: streaming, GPU/model serving, pools/spot | Deferred/Partial | Pool inventory and a driver-on-spot detector exist. Dedicated streaming, GPU, model-serving, eviction, and pool-cost analysis is deferred. |
-| Sections 6.15-6.16: FinOps and commitments | Partial | Azure budgets/reservations/Savings Plans, compute policies, optional account budgets, and governance evidence are collected. Forecast, notifications, assignment modeling, utilization, break-even, renewal, and contract logic are deferred. |
-| Section 7: detector catalog | Partial | Six conservative rules/evidence gates are implemented. Remaining catalog entries are deferred and reports state insufficient evidence where appropriate. |
-| Sections 8-9: model and correlation | Partial | Schema 1.0 envelopes, 20 mapped entities, raw provenance, canonical Azure IDs, workspace/cost rules, unmatched and ambiguous behavior are implemented. Full 33-entity model and broader identifiers are deferred. |
+| Sections 6.6-6.9: compute, jobs, SQL, Spark | Partial | Inventory plus observed utilization, sizing candidates, job failure/routing, query/user/warehouse summaries, and node-network metrics are implemented. Sample coverage remains explicit. Spark stage/task/event-log analysis and authoritative per-query costs remain unsupported. |
+| Sections 6.10-6.11: Delta and code/query patterns | Partial/Deferred | UC tables, information schema, and hashed table detail/history files are collected and normalized. Fine-grained file-distribution analysis and notebook source scanning are deferred; optional notebooks are metadata only. |
+| Sections 6.12-6.14: streaming, GPU/model serving, pools/spot | Deferred/Partial | Pool inventory, a driver-on-spot detector, and optional serving-endpoint metadata exist. Dedicated streaming, GPU, serving-performance, eviction, and pool-cost analysis is deferred. |
+| Sections 6.15-6.16: FinOps and commitments | Partial | Budget normalization, governance evidence, and explicit-input hourly commitment scenarios are available. Native financial eligibility, sustained-demand derivation, contract-term economics, forecast collection, renewal, and purchase automation are not provided. |
+| Section 7: detector catalog | Partial | Six base rules/evidence gates plus versioned capability findings for sizing, jobs, queries, and two posture checks. The full requirements catalog is not implemented; no inferred finding savings or automatic remediation. |
+| Sections 8-9: model and correlation | Partial | Schema 1.0 envelopes, 30 mapped entity types, raw provenance, canonical Azure IDs, scope filtering, workspace/cost rules, and unmatched/ambiguous behavior are implemented. This is not full coverage of the requirements' 33-entity model. |
 | Section 10: cost/reconciliation | Partial | Actual/amortized separation, corrections, effective-price dates, currency guard, tolerance, list-price join, and serverless duplicate prevention are tested. Contract price, tax input, approved shared allocation, and commitment-adjusted cost are deferred. |
 | Section 11: quality/confidence | Partial | Per-source/overall metrics and detector confidence are implemented. Current freshness/source-authority metrics are coarse and not source-age-aware. |
-| Section 12: outputs | Implemented/Partial | All named top-level machine files and 17 report subjects are generated. NDJSON is the open normalized format; not every raw source maps to a normalized entity. |
-| Section 13: human validation | Implemented | Markdown/CSV sign-off register and mandatory human-validation finding flag are generated; completing sign-off is operational. |
-| Section 14: security/permissions | Partial/Operational | Azure CLI OAuth, token non-persistence, method/SQL guards, recursive Databricks redaction, and documented least privilege are present. Output encryption, retention deletion, and external access audit are customer controls. |
-| Section 15: collector behavior | Partial | Pagination, bounded retry, Databricks request timeout, SQL deadline, counts, timestamps, explicit partial results, and no success-shaped failure are implemented. Incremental checkpoints, full cancellation, whole-collector timeout, and complete elapsed-time progress are deferred. |
-| Section 16: tests | Validated/Partial | 176 assessment tests cover contracts, paging, retries/timeouts, redaction, reconciliation, detectors, report generation, wrapper behavior, SQL bodies, timestamps, scope selection, qualified boundaries, snapshots, and repeated runs. Live multi-subscription collection and every possible telemetry combination remain unvalidated. |
+| Section 12: outputs | Implemented/Partial | Core machine outputs, scope filter, capability analysis, and 17 report subjects are generated. The UI renders Markdown as HTML and can generate full-run XLSX and scenario artifacts. Not every raw source maps to a normalized entity. |
+| Section 13: human validation | Implemented | Markdown/CSV register, saved per-finding decisions, and mandatory human-validation flags exist. Review is optional for download, not optional before implementing recommendations. |
+| Section 14: security/permissions | Partial/Operational | CLI OAuth, method/SQL guards, recursive redaction, and explicit snapshot deletion exist. Permission setup and coverage-count publication are separately confirmed operations. Encryption, automatic retention, and external audit remain customer controls. |
+| Section 15: collector behavior | Partial | Bounded paging/retries, SQL deadline, live progress/counts, optional assets, 1-4 Databricks workers, and bounded audit splitting exist. UI cancellation terminates the tracked live process. Incremental checkpoints, whole-collector timeout, and cancellable local re-analysis remain absent. |
+| Section 16: tests | Validated/Partial | Dated assessment and UI records cover contracts, safety, scope, capabilities, reports, snapshots, and browser workflows. Totals are tied to those executions, not maintained as a current suite count. Live optional assets, concurrency performance, and publication rendering remain unverified. |
 | Section 17: acceptance | Partial | Read-only safety and bounded live collection are validated. Full selected-estate coverage, full detector catalog, complete normalized schema set, and human sign-off remain scope-dependent or deferred. |
 
 ## Test coverage map
@@ -101,6 +121,11 @@ Status meanings:
 | `test_assessment_contracts.py` | Fixtures, schema envelopes, cost edge cases, quality, detectors, repeated/synthetic end-to-end behavior. |
 | `test_model_pipeline.py` | Parsing, provenance, correlation, reconciliation, confidence, detector boundaries, pipeline outputs. |
 | `test_reports.py` | Deterministic report set, evidence links, unknown savings, pipeline integration. |
+| `Assessment.Scope.Tests.ps1`, `InvokeAssessment.Scope.Tests.ps1`, `InvokeAssessment.Tests.ps1` | Scope selection, saved configuration, wrapper actions, approvals, and report regeneration. |
+| `Azure.CostThrottling.Tests.ps1`, `Azure.Governance.Tests.ps1` | Cost pacing/cooldowns, readiness probe, budgets, and diagnostic applicability. |
+| `Capabilities.Tests.ps1`, `PartialCollectorRecovery.Tests.ps1` | Optional assets, concurrency initialization, notification redaction, audit splitting, and partial recovery. |
+| `ui/server/test_capabilities.py` | Rules, metrics, import, paging, child re-analysis, workbook, scenarios, and mocked publication. |
+| UI frontend and browser suites | Five-step navigation, review/export, report preview, saved snapshots, and source outcomes; see the [UI test record](../../ui/docs/capabilities-test-plan.md). |
 
 ## Revalidation commands
 
@@ -113,12 +138,17 @@ python -m unittest -v `
 .\assessment\scripts\Test-AssessmentReadOnly.ps1 -Path .\assessment
 ```
 
-For a live revalidation, use the reviewed customer scope and:
+Run UI/server suites separately as described in the
+[UI reproduction commands](../../ui/docs/capabilities-test-plan.md#reproduce).
+For an authorized live revalidation, use the reviewed customer scope and:
 
 ```powershell
-.\assessment\Collect-CostOptimizationAssessment.ps1 `
+.\assessment\Invoke-Assessment.ps1 -Action Run `
   -ConfigPath .\scope.json `
   -ContinueOnCollectorError
 ```
 
-Record the run ID, date, source statuses, activity-log/compute-start review, and test counts in a new evidence record. Do not overwrite the historical validated result.
+If the scope includes warehouse SQL, supply approved persisted consent or explicitly
+add `-ApproveSqlWarehouseAutoStart`. Record the run ID, date, source statuses,
+activity-log/compute-start review, and test counts in a new evidence record. Do not
+overwrite historical results or treat a documentation check as a live validation.

@@ -26,6 +26,7 @@ Copy [`assessment-scope.example.json`](../config/assessment-scope.example.json) 
 | `databricks.workspaces[]` | `include: true` selects a workspace. `workspaceUrl` is required for live API calls; `workspaceId` is the preferred output key. |
 | `databricks.accountId`, `accountHost` | Optional pair, editable in the UI. An account UUID and accounts hostname without scheme/path enable account workspace and budget inventory; live permissions are still required. |
 | `databricks.sqlWarehouseId` | Default warehouse for all SQL sources. |
+| `databricks.allowSqlWarehouseAutoStart` | Persisted approval accepted by the CLI wrapper's Run action. Readiness still requires its explicit approval switch; the UI clears old approval and asks again. |
 | `databricks.workspaces[].sqlWarehouseId` | Per-workspace override. In the UI, an absent choice receives the smallest running, otherwise smallest stopped, discovered warehouse. An explicit empty string preserves None; existing IDs are retained. |
 | `databricks.includeIdentities` | Enables SCIM group collection. |
 | `databricks.workspaces[].deepDiveJobRunIds` | Selects Jobs API records and related cluster events only in that workspace; IDs must be numeric. An empty array skips the optional deep dive. |
@@ -35,11 +36,16 @@ Copy [`assessment-scope.example.json`](../config/assessment-scope.example.json) 
 | `analysis.pageSize` | Page-size hint, capped where an endpoint imposes a smaller maximum. |
 | `analysis.requestTimeoutSeconds` | Databricks HTTP request timeout. Azure CLI REST calls currently have no equivalent explicit timeout. |
 | `analysis.collectorTimeoutSeconds` | Deadline for a pending Databricks SQL statement; not a whole-collector timeout. |
-| `analysis.retryCount`, `retryBaseSeconds` | Bounded exponential retries, capped at 60 seconds per delay. |
+| `analysis.retryCount`, `retryBaseSeconds` | Bounded retries. General backoff is capped at 60 seconds; Cost Management has separate pacing and server-cooldown handling, described in [collector inventory](collectors-and-outputs.md#cost-management-request-handling). |
+| `capabilities.profile` | `standard` (default), `extended`, or `custom`. Extended defaults to all seven optional asset types unless an explicit list is supplied. |
+| `capabilities.assets` | Optional metadata types: `repos`, `notebooks`, `experiments`, `serving-endpoints`, `sql-alerts`, `genie-spaces`, `uc-volumes`. An explicit empty list selects none. |
+| `capabilities.modules` | Selected analyses: `utilization`, `sizing`, `jobs`, `queries`, `network`, `posture`, `assets`, `commitments`. Defaults to all; does not disable core collectors. |
+| `capabilities.concurrency` | Databricks collector workers, integer 1-4; default 1. Not a global HTTP concurrency limit. |
+| `capabilities.rules` | Validated analysis thresholds and sample requirements; effective values and a version hash are saved in capability output. See [UI rules](../../ui/USER-GUIDE.md#profiles-modules-and-rules). |
 | `thresholds.materialMonthlyCost` | Material-cost detector threshold. |
 | `thresholds.interactiveAutoTerminationMinutes` | Interactive auto-termination detector boundary. |
 | `redaction.*` | Controls identity, notebook-path, table-name hashing and query-text omission. |
-| `outputs.root` | Parent for unique run directories; relative paths resolve from the current shell directory. |
+| `outputs.root` | Parent for unique run directories. Direct collector calls resolve relative paths from the current directory; the wrapper runs from the repository root. Explicit `-OutputRoot` resolves from the invocation directory. |
 
 Several example fields are recorded for future compatibility but are not consumed by current collectors or detectors, including `includeManagementGroups`, `includeQueryText`, `includeNotebookPaths`, most threshold fields, and output format/retention booleans. Do not assume those values disable file creation or collector surfaces.
 
@@ -157,26 +163,36 @@ Assert-ReadOnlyAssessment -Config $config
 .\assessment\scripts\Test-AssessmentReadOnly.ps1 -Path .\assessment
 ```
 
-For real permission/source readiness, run collection without analysis:
+For live source readiness without warehouse use:
 
 ```powershell
-.\assessment\Collect-CostOptimizationAssessment.ps1 `
+.\assessment\Invoke-Assessment.ps1 -Action Readiness `
   -ConfigPath .\scope.json `
-  -SkipAnalysis `
   -ContinueOnCollectorError
 ```
 
-This is a real collection, not a zero-cost probe. If `sqlWarehouseId` is present, SQL statements can auto-start the warehouse.
+The wrapper removes SQL Warehouse IDs and uses one one-day aggregate Cost Management
+probe per scope instead of full cost collection. Other selected collectors still read
+live sources. To include SQL-backed checks, explicitly add
+`-ApproveSqlWarehouseAutoStart`; those queries can incur charges.
 
 ### Standard collection
 
 ```powershell
-.\assessment\Collect-CostOptimizationAssessment.ps1 `
+.\assessment\Invoke-Assessment.ps1 -Action Run `
   -ConfigPath .\scope.json `
   -ContinueOnCollectorError
 ```
 
-Without `-ContinueOnCollectorError`, an unhandled domain error results in a final throw. Individual source failures are normally captured as `partial`, `failed`, or `pending telemetry` results.
+If the scope contains a SQL Warehouse ID, supply approved persisted consent or add
+`-ApproveSqlWarehouseAutoStart`. The wrapper continues after collector errors by
+default; `-FailOnCollectorError` requests a final throw. Individual source failures
+remain `partial`, `failed`, or `pending telemetry`.
+
+The lower-level `Collect-CostOptimizationAssessment.ps1` supports domain skips,
+`-SkipAnalysis`, and `-ExistingRunRoot`, but does not enforce the wrapper's warehouse
+consent gate. Use it only with a reviewed scope; omit warehouse IDs without approval.
+For that entry point, `-ContinueOnCollectorError` suppresses the final error throw.
 
 ### Analysis-only/offline
 
@@ -188,10 +204,15 @@ python .\assessment\pipeline\run_assessment.py `
 
 Required input is a `raw/` tree. For faithful provenance and limitations, include `assessment-manifest.json`, `collection-status.json`, and source-status JSON files. If the manifest is absent, the pipeline uses the assessment ID and analysis settings from the supplied config.
 
+This command and `Invoke-Assessment.ps1 -Action Reports` regenerate outputs in place.
+Back up review/export files first. The UI's **Create child analysis** instead creates
+a separate local run and leaves the parent unchanged. Supported raw CSV/JSON imports
+can also be analyzed locally through the [UI import workflow](../../ui/USER-GUIDE.md#import-raw-evidence-without-an-azure-login).
+
 ### Repeat or resume
 
-- Run the main entry point again without `-ExistingRunRoot` for an independent repeated assessment.
-- Use `-ExistingRunRoot` only when deliberately recollecting or reanalyzing that exact run directory.
+- Run `Invoke-Assessment.ps1 -Action Run` again for an independent repeated assessment.
+- Use the lower-level collector's `-ExistingRunRoot` only when deliberately recollecting or reanalyzing that exact run directory; it is not a wrapper parameter.
 - The orchestrator rewrites `collection-status.json` from collectors executed in the current invocation and recalculates final manifest status. Preserve a copy before any resume operation.
 
 ### Benefits realization
@@ -214,4 +235,4 @@ The current implementation produces a versioned baseline artifact but no automat
 - Retries are bounded by `retryCount` with exponential delays.
 - Databricks HTTP calls use `requestTimeoutSeconds`.
 - Pending SQL statements poll every two seconds until `collectorTimeoutSeconds`.
-- No global cancellation checkpoint, incremental collection checkpoint, or whole-run timeout is currently implemented.
+- No engine-level cancellation checkpoint, incremental collection checkpoint, or whole-run timeout is implemented. The UI can terminate its tracked live process and marks any created run partial/canceled; local import and child re-analysis are not cancellable streaming jobs.

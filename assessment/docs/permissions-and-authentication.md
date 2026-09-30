@@ -14,7 +14,9 @@ az account set --subscription '<subscription-id>'
 az account show
 ```
 
-Azure ARM calls use `az rest`. Databricks workspace calls request a Microsoft Entra access token from:
+Most Azure ARM calls use `az rest`. Cost Management query/forecast requests use
+PowerShell HTTP with an Azure CLI token so retry headers can be inspected.
+Databricks workspace calls request a Microsoft Entra access token from:
 
 ```powershell
 az account get-access-token `
@@ -34,6 +36,11 @@ These fields are available under **Databricks account settings** in Configure. S
 ### SQL Warehouse
 
 System-table and metadata SQL uses a configured `databricks.sqlWarehouseId` or per-workspace `sqlWarehouseId`. The caller needs `CAN USE` on that warehouse. The UI selects the smallest running warehouse, otherwise the smallest stopped warehouse, only when no prior choice exists. Existing choices and explicit None are preserved. Listing/selection does not start compute. A SQL statement can auto-start an eligible stopped warehouse, so execution requires separate explicit warehouse approval in Validate.
+
+The CLI wrapper's Run action accepts `-ApproveSqlWarehouseAutoStart` or persisted
+`databricks.allowSqlWarehouseAutoStart=true`. Readiness removes warehouse IDs unless
+the approval switch is supplied. Direct collector calls do not apply that wrapper
+gate; omit warehouse IDs if SQL compute use is not approved.
 
 ### Separate confirmed pipeline timeline setup
 
@@ -120,7 +127,7 @@ The following matrix reflects calls made by the current collectors. Built-in rol
 | Workspace ARM details | `Microsoft.Databricks/workspaces/read` | **Reader** on included workspace/resource group/subscription | Workspace detail limitation. |
 | Managed resource inventory | Resource Graph reads against managed resource groups discovered from workspace ARM data | **Reader** on the workspace-managed resource group or containing subscription | Managed resources are incomplete. |
 | Diagnostic settings | `Microsoft.Insights/diagnosticSettings/read` on every observed resource | **Monitoring Reader** or a custom role with that action at the included resource groups | Permission failures remain partial. Explicitly unsupported resource types are retained as not-applicable notes and do not by themselves fail applicable checks. |
-| Cost query | `Microsoft.CostManagement/query/read` at `azure.costScope` for Actual/Amortized queries | **Cost Management Reader** at the exact cost scope | Azure Cost Management is failed if no cost basis succeeds, otherwise partial. |
+| Cost query | `Microsoft.CostManagement/query/read` at each `azure.costScopes` entry (or legacy `costScope` / selected subscriptions) | **Cost Management Reader** at each exact cost scope | Azure Cost Management is failed if no cost basis succeeds, otherwise partial. |
 | Azure budgets | `Microsoft.Consumption/budgets/read` on each included subscription | **Cost Management Reader** at subscription | Budget limitation. |
 | Reservation orders | `Microsoft.Capacity/reservationOrders/read` at tenant/billing context | **Reservations Reader** or organization-approved equivalent at the applicable reservation scope | Reservation limitation. |
 | Savings Plans | `Microsoft.BillingBenefits/savingsPlans/read` at tenant/billing context | **Savings plan reader** or organization-approved equivalent at the applicable billing scope | Savings Plan limitation. |
@@ -156,6 +163,35 @@ Databricks list APIs return only objects visible to the caller unless the identi
 | Selected `DESCRIBE DETAIL/HISTORY` | `USE CATALOG`, `USE SCHEMA`, and `SELECT`/metadata access on each approved table | Runs only for `deepDiveTableNames`. |
 | Databricks account budgets | Account user with budget-view permission | Requires account host and account ID. |
 
+### Optional asset collection
+
+Standard collection leaves these sources off. Extended selects all seven metadata
+types by default; Custom uses the selected list. Existing workspace authentication
+is reused, and permission failures remain visible rather than becoming empty inventories.
+
+| Source/API | Access boundary |
+| --- | --- |
+| Repos `GET /api/2.0/repos` | Read/list visibility for the returned repos; no checkout or update is performed. |
+| Notebooks `GET /api/2.0/workspace/list` | Visibility of the listed workspace folders and objects; bounded traversal collects metadata, not notebook source. |
+| Experiments `POST /api/2.0/mlflow/experiments/search` | Permission to view returned active experiments; a paginated read-only search, not experiment creation. |
+| Serving endpoints `GET /api/2.0/serving-endpoints` | Endpoint-list visibility; no model invocation or deployment. |
+| SQL alerts `GET /api/2.0/sql/alerts` | Visibility of returned alerts; no alert execution or modification. |
+| Genie spaces `GET /api/2.0/genie/spaces` | Visibility of returned spaces; no conversation or query is started. |
+| UC volumes `GET /api/2.1/unity-catalog/volumes` | Metadata visibility through accessible catalogs and schemas; no volume files are read. |
+
+API availability and the caller's object visibility determine coverage. Do not
+grant broad administrator roles merely to make every optional inventory complete.
+
+### Optional dashboard publication
+
+Publication is separate from read-only collection. The caller needs permission to
+create and publish a Lakeview dashboard in the explicitly approved destination,
+plus access to the selected warehouse. It publishes coverage counts only, uses
+viewers' own credentials, and grants no access. See the [UI publication procedure](../../ui/USER-GUIDE.md#review-workbooks-and-publication);
+live payload acceptance and rendering remain unverified.
+
+## Interpreting remaining access gaps
+
 Missing `SELECT` on `system.lakeflow.pipeline_update_timeline` remains a workloads warning.
 Use the separately confirmed setup above if the signed-in identity already has the required
 grant authority; otherwise an authorized administrator must arrange those privileges.
@@ -173,4 +209,8 @@ az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d --qu
 .\assessment\scripts\Test-AssessmentReadOnly.ps1 -Path .\assessment
 ```
 
-Use a short `-SkipAnalysis -ContinueOnCollectorError` run to test real access. Review source statuses instead of assuming that authentication success implies authorization or complete visibility.
+Use `Invoke-Assessment.ps1 -Action Readiness -ConfigPath .\scope.json` for live checks
+with a bounded Cost Management probe and no warehouse SQL. Add
+`-ApproveSqlWarehouseAutoStart` only for authorized SQL-backed checks, which can
+incur charges. Review source statuses: authentication does not prove authorization
+or complete visibility.

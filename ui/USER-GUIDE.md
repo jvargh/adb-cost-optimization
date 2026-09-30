@@ -7,7 +7,21 @@ for running the toolkit without the UI.
 
 ## Start or update the app
 
-From the workspace root:
+**Prerequisites:** PowerShell 7, Python 3, and Azure CLI. Native collection also
+requires `az login` and permission to read the selected sources. Local evidence
+import and saved-result review do not require Azure sign-in.
+
+For a first installation or after frontend changes, build from the workspace root
+with Node.js 22.12+ and npm:
+
+```powershell
+Set-Location .\ui
+npm ci
+npm run build
+Set-Location ..
+```
+
+Then launch from the workspace root:
 
 ```powershell
 .\ui\Start-AssessmentUi.ps1
@@ -18,6 +32,8 @@ operations, stop its launcher with Ctrl+C, run the command again, and refresh th
 Changing frontend files alone does not reload the Python backend. These capabilities
 require backend version `2026.09.29.1` or later, visible at `/api/health`.
 Existing snapshots and review decisions remain on disk.
+After rebuilding frontend files, refresh the browser; restart the launcher after
+backend changes. Node.js is not needed to serve an already built UI.
 
 Use a desktop-width window for dense evidence tables. Narrow screens retain navigation
 and horizontally scrollable tables. The header's Light/Dark control changes the theme.
@@ -55,8 +71,9 @@ Saved Configure/Validate/Run pages and Evidence quality show a final collection 
   describes recorded collection evidence, not a fresh permissions check or an invented
   historical readiness report. Live validation still uses its own blockers/readiness.
 
-Partial/skipped reasons are expanded in the saved checks panel. The recent run had
-22 passed, 4 partial, and 4 skipped collectors:
+Partial/skipped reasons are expanded in the saved checks panel. The recorded
+2026-09-29 16:30 UTC snapshot had 22 passed, 4 partial, and 4 skipped collectors.
+These are historical counts, not an expected result for every assessment:
 
 | Indicator | Cause and action |
 | --- | --- |
@@ -69,10 +86,21 @@ The Databricks governance note that Azure budgets/policy are handled elsewhere i
 not a failure; the separate Azure collectors supply that evidence. No extra grants
 are needed to fix the two code defects above.
 
-Existing snapshots are immutable historical evidence: refresh to see the clearer
+Existing snapshots retain historical collection evidence: refresh to see the clearer
 red/green display, but collect a **new assessment** to replace missing evidence.
 Re-analysis alone cannot recover data that was never collected. Do not enable
 optional sources solely to remove gray skipped badges.
+
+## Reopen or manage saved assessments
+
+Use **Saved snapshots** in the header to select an earlier run, newest first.
+Opening it reads local results only. Continue reviewing or exporting without
+collecting again; its saved checks do not prove current permissions.
+
+**New assessment** returns to Configure with fresh IDs and dates, empty scope,
+and cleared approvals. It does not delete earlier runs. **Manage snapshots** can
+permanently delete selected runs, including evidence, reports, and saved decisions,
+after confirmation. Back up important runs first; deletion is blocked during live work.
 
 ## Profiles, modules and rules
 
@@ -203,7 +231,7 @@ content-classification guarantee, so review input and outputs before sharing the
 
 Imported results are marked **imported**, with uncertain extraction completeness. Azure
 authoritative cost is **unavailable**, not zero; cost views are gated accordingly.
-No credentials, Azure discovery, warehouse queries or scanner-wheel installation are required.
+No credentials, Azure discovery or warehouse queries are required.
 
 ## Commitment scenario inputs
 
@@ -239,6 +267,8 @@ are at the top; the review form is collapsed by default. It edits one selected
 finding at a time, using only decision, reviewer and optional note. A newly edited
 non-pending decision needs a reviewer before saving. Existing role, risk, experiment
 and other historical fields are retained even though the compact form does not edit them.
+Saving updates `.ui-review.json` and the sign-off CSV. It does not regenerate the
+original Markdown report. A newly generated workbook includes the saved decisions.
 
 **Preview report** moves directly to the preview and places keyboard focus there.
 Markdown reports render as formatted HTML with headings, tables, lists and code blocks,

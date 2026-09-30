@@ -4,6 +4,10 @@ The toolkit SHALL NOT be handed to a user based only on unit, contract, mock, or
 
 Before human handoff, the maintainer must execute every documented front-door command that is applicable to the target environment.
 
+This is a validation requirement, not authorization to collect customer data, start
+compute, change permissions, or publish a dashboard. Use only an approved scope.
+Record any untested live path as unverified rather than running it merely to clear a gate.
+
 ## Mandatory command matrix
 
 | Command | Required validation |
@@ -47,7 +51,30 @@ If any documented command fails:
 4. Rerun the exact command—not a proxy.
 5. Update validation evidence and test counts.
 
-## Current validated evidence
+## UI handoff checks
+
+For delivery of the local web UI, also verify the applicable paths below:
+
+| Path | Required validation |
+| --- | --- |
+| `ui\Start-AssessmentUi.ps1` after the documented build | Loopback host responds, production UI loads, and backend version is recorded. |
+| Configure -> Validate -> Run analysis | Exactly one Continue action below permission content; validation and collection start explicitly with separate warehouse consent. |
+| Visualize results | Saved costs, capability views and source gaps agree with evidence; missing values are not zero and partial runs remain reviewable. |
+| Review & export | HTML report preview navigates correctly; downloads do not require review or approve findings; saved decisions reach the sign-off CSV and newly generated workbook. |
+| Saved snapshots | Reopen without cloud collection; child analysis preserves the parent; deletion requires exact confirmation and targets only selected local runs. |
+| Import and workbook | Supported raw data is validated, imported cost stays unavailable, XLSX opens correctly, and unsaved review edits cannot be lost through generation. |
+| Optional permission setup / publication | Separate preview and approval, failure/unknown handling, and audit records. Mocked success is not evidence of live grant authority or live dashboard rendering. |
+
+Use isolated test evidence for deletion and import checks. The
+[UI acceptance record](../../ui/docs/capabilities-test-plan.md) distinguishes synthetic,
+saved-native, and live checks; current publication rendering remains unverified.
+
+## Recorded validation evidence
+
+These are dated execution records, not a claim that every current command was
+rerun during a documentation update. Later UI/capability checks are recorded in the
+[UI test plan](../../ui/docs/capabilities-test-plan.md), and later live permission
+and readiness checks are in [test-results.md](../test-results.md).
 
 For the scope-selection change on 2026-09-26:
 
@@ -79,8 +106,8 @@ On 2026-09-26:
 - Databricks governance: 2,367 items.
 - SQL Warehouse returned to `STOPPED` through five-minute autostop.
 - Full-run output validation found zero missing required files and all JSON/NDJSON parsed successfully.
-- Pester: 58 passed.
-- Python: 27 passed.
-- Total: 86 passed.
+- Earlier automated-count summaries are inconsistent (the recorded suite subtotals
+  do not sum to the stated 86). Do not use that aggregate as a current acceptance
+  total; use the later dated scope-selection and UI execution records above.
 - Fresh Databricks-scope run `adb-cost-assessment-20260926T205420604Z-b448b7b9` contained zero unrelated Azure resources or cost rows.
 - Read-only safety: passed.
