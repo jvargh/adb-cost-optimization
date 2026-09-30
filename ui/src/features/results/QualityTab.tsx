@@ -2,6 +2,8 @@ import { Callout, DataTable, KpiCard, Panel, StatusBadge, type Column } from '@/
 import { QualityRadar } from '@/components/charts';
 import { STATUS_MEANING, formatNumber, formatPercent } from '@/lib/format';
 import type { AssessmentResults, EvidenceGap, CollectionSource } from '@/types';
+import { MODULES } from '@/types/capabilities';
+import { CollectionOutcome } from './CollectionOutcome';
 
 export function QualityTab({ results }: { results: AssessmentResults }) {
   const { telemetry, collection, evidenceGaps, scopeFilter } = results;
@@ -48,11 +50,19 @@ export function QualityTab({ results }: { results: AssessmentResults }) {
 
   return (
     <div className="stack-lg">
+      <CollectionOutcome results={results} />
       <Callout tone="info" title="Confidence is derived, not asserted">
         Every finding carries a confidence score built from completeness, coverage, freshness,
         consistency, sample adequacy, attribution quality, source authority, and collection success.
         Low scores are surfaced rather than hidden so reviewers can weight the findings correctly.
       </Callout>
+
+      {results.capabilities?.workspaceCoverage && <Panel title="Workspace capability coverage" subtitle="Saved evidence only, not a live permission check. Unknown and unselected modules are not passing controls.">
+        <DataTable rows={results.capabilities.workspaceCoverage} rowKey={r => r.workspaceId} columns={[
+          { key: 'workspace', header: 'Workspace', render: r => <>{r.workspaceName}<br />{r.workspaceId}</> },
+          ...MODULES.map(module => ({ key: module, header: module, render: (r: NonNullable<NonNullable<AssessmentResults['capabilities']>['workspaceCoverage']>[number]) => `${r.modules[module].status} (${r.modules[module].rows} rows)` })),
+        ]} />
+      </Panel>}
 
       <div className="grid-4">
         <KpiCard
@@ -129,7 +139,7 @@ export function QualityTab({ results }: { results: AssessmentResults }) {
 
       <Panel
         title="Source limitations"
-        subtitle="Limitations recorded by collectors that still returned usable evidence."
+        subtitle="Recorded failures, partial evidence and skipped-source reasons. A skipped source is not a successful collection."
       >
         <DataTable
           columns={[

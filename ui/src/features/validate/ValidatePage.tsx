@@ -15,14 +15,32 @@ const GROUP_LABELS: Record<ValidationCheck['group'], string> = {
 
 const GROUP_ORDER: ValidationCheck['group'][] = ['scope', 'permissions', 'environment', 'safety'];
 
-export function ValidatePage({ onRun, onConfigure }: { onRun: () => void; onConfigure?: () => void }) {
-  const { config, validation, validating, validationError, validationProgress } =
-    useConfigStore();
-  const permissionBusy = usePermissionStore((state) => state.busy);
-
+export function ValidatePage({ onRun, onConfigure, hideContinue = false }: { onRun: () => void; onConfigure?: () => void; hideContinue?: boolean }) {
+  const { config, validation, validating } = useConfigStore();
+  const { busy, requesting } = usePermissionStore();
   if (!config) {
     return <EmptyState title="Configure the assessment first" detail="Scope selection is required before pre-flight validation can run." />;
   }
+
+  return (
+    <div className="stack-lg">
+      <ApprovalsPanel disabled={validating || busy || requesting} />
+      <Panel title="Start validation" subtitle="Check configuration and source access. Progress appears below; assessment analysis starts separately in step 3.">
+        <ValidationActions />
+      </Panel>
+      <ValidationDetails onConfigure={onConfigure} />
+      {!hideContinue && validation && (
+        <Panel title="Next step: analysis">
+          <ValidationActions onRun={onRun} showValidation={false} />
+        </Panel>
+      )}
+    </div>
+  );
+}
+
+function ValidationDetails({ onConfigure }: { onConfigure?: () => void }) {
+  const { validation, validating, validationError, validationProgress } = useConfigStore();
+  const permissionBusy = usePermissionStore((state) => state.busy);
 
   if (validating) {
     return <ValidationProgressPanel />;
@@ -33,22 +51,13 @@ export function ValidatePage({ onRun, onConfigure }: { onRun: () => void; onConf
 
   if (!validation) {
     return (
-      <div className="stack-lg">
-      <ApprovalsPanel />
       <Panel title="Pre-flight validation">
         {validationError ? (
-          <div className="stack">
-            <Callout tone="danger" title="Validation did not finish">{validationError}</Callout>
-            <ValidationActions />
-          </div>
+          <Callout tone="danger" title="Validation did not finish">{validationError}</Callout>
         ) : (
-          <div className="stack">
-            <p>Validation has not started. Run it explicitly to check the current configuration and source access. Read-only checks can query Azure and Databricks.</p>
-            <ValidationActions />
-          </div>
+          <p>Validation has not started. Run it explicitly to check the current configuration and source access. Read-only checks can query Azure and Databricks.</p>
         )}
       </Panel>
-      </div>
     );
   }
 
@@ -77,8 +86,6 @@ export function ValidatePage({ onRun, onConfigure }: { onRun: () => void; onConf
         />
       </div>
 
-      <ApprovalsPanel />
-
       {GROUP_ORDER.map((group) => {
         const checks = validation.checks.filter((c) => c.group === group);
         if (checks.length === 0) return null;
@@ -93,7 +100,7 @@ export function ValidatePage({ onRun, onConfigure }: { onRun: () => void; onConf
         );
       })}
 
-      <Panel footer={<ValidationActions onRun={onRun} />}>
+      <Panel>
         <span className="muted">
           Validation is itself read-only. Configuration blockers are reported before any source checks start.
           Re-run it after changing scope or approvals.
@@ -103,13 +110,13 @@ export function ValidatePage({ onRun, onConfigure }: { onRun: () => void; onConf
   );
 }
 
-function ApprovalsPanel() {
+function ApprovalsPanel({ disabled }: { disabled: boolean }) {
   const { approvals, setApproval } = useConfigStore();
   return (
     <Panel title="Approvals" subtitle="Warehouse selection never implies approval. Permission changes need a separate exact-grant confirmation.">
       <div className="stack-sm">
         <label className="radio">
-          <input type="checkbox" checked={approvals.approveSqlWarehouseAutoStart}
+          <input type="checkbox" disabled={disabled} checked={approvals.approveSqlWarehouseAutoStart}
             onChange={(event) => setApproval('approveSqlWarehouseAutoStart', event.target.checked)} />
           <span className="checkbox-body">
             <span className="checkbox-title">Approve SQL Warehouse auto-start (<span className="mono">-ApproveSqlWarehouseAutoStart</span>)</span>
@@ -117,7 +124,7 @@ function ApprovalsPanel() {
           </span>
         </label>
         <label className="radio">
-          <input type="checkbox" checked={approvals.continueOnCollectorError}
+          <input type="checkbox" disabled={disabled} checked={approvals.continueOnCollectorError}
             onChange={(event) => setApproval('continueOnCollectorError', event.target.checked)} />
           <span className="checkbox-body">
             <span className="checkbox-title">Continue on collector error (<span className="mono">-ContinueOnCollectorError</span>)</span>

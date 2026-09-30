@@ -6,18 +6,18 @@ export interface CostReconciliation {
   schemaVersion: string;
   reportingBasis: string;
   currency: string;
-  authoritativeTotal: number;
+  authoritativeTotal: number | null;
   authoritativeTotals: Record<string, number>;
-  collectedTotal: number;
-  matchedCost: number;
-  unmatchedCost: number;
-  excludedCost: number;
-  allocatedSharedCost: number;
-  varianceAmount: number;
-  variancePercent: number;
-  withinTolerance: boolean;
+  collectedTotal: number | null;
+  matchedCost: number | null;
+  unmatchedCost: number | null;
+  excludedCost: number | null;
+  allocatedSharedCost: number | null;
+  varianceAmount: number | null;
+  variancePercent: number | null;
+  withinTolerance: boolean | null;
   currencyAggregationAllowed: boolean;
-  databricksListPriceEstimate: number;
+  databricksListPriceEstimate: number | null;
   databricksListPriceAddedToAzure: number;
   unmatchedDatabricksUsageRecords: number;
   taxIncluded: boolean | null;
@@ -57,7 +57,7 @@ export interface BenefitsBaseline {
   analysisWindow: AnalysisWindow;
   reportingBasis: string;
   currency: string;
-  authoritativeCost: number;
+  authoritativeCost: number | null;
   realizedSavings: number | null;
   workloadNormalization: { method: string; reason: string };
 }
@@ -92,6 +92,7 @@ export interface CostBreakdownSlice {
 }
 
 export interface ComputeRecord {
+  workspaceId?: string;
   clusterId: string;
   clusterName: string;
   workspaceName: string;
@@ -112,6 +113,7 @@ export interface ComputeRecord {
 }
 
 export interface WarehouseRecord {
+  workspaceId?: string;
   id: string;
   name: string;
   workspaceName: string;
@@ -129,6 +131,7 @@ export interface WarehouseRecord {
 }
 
 export interface WorkloadRecord {
+  workspaceId?: string;
   jobId: string;
   jobName: string;
   workspaceName: string;
@@ -159,6 +162,9 @@ export interface EvidenceGap {
 
 /** Everything the Visualize Results area binds to for one run. */
 export interface AssessmentResults {
+  capabilities?: import('./capabilities').CapabilitySummary | null;
+  costAvailable?: boolean;
+  parentRunId?: string | null;
   manifest: AssessmentManifest;
   scopeFilter: ScopeFilter;
   collection: CollectionSource[];
@@ -183,7 +189,7 @@ export interface AssessmentResults {
 export interface ExportArtifact {
   name: string;
   relativePath: string;
-  kind: 'markdown' | 'csv' | 'json' | 'ndjson';
+  kind: 'markdown' | 'csv' | 'json' | 'ndjson' | 'xlsx';
   description: string;
   sizeBytes: number;
   sensitivity: 'sensitive' | 'redacted';

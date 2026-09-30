@@ -104,7 +104,7 @@ export interface RunSummary {
   startedAtUtc: string;
   completedAtUtc: string | null;
   analysisWindow: AnalysisWindow;
-  authoritativeCost: number;
+  authoritativeCost: number | null;
   currency: string;
   findingCount: number;
   subscriptionIds: string[];

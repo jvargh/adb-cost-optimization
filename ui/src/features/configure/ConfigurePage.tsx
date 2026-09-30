@@ -4,6 +4,7 @@ import { useConfigStore } from '@/state';
 import { formatDate } from '@/lib/format';
 import { assignLegacyDeepDiveTargets, isResourceGroupSelected } from '@/lib/scopeSelection';
 import type { CostBasis } from '@/types';
+import { CapabilityOptionsEditor } from '@/components/CapabilityOptionsEditor';
 
 export function ConfigurePage({ onValidate }: { onValidate: () => void }) {
   const {
@@ -497,6 +498,7 @@ export function ConfigurePage({ onValidate }: { onValidate: () => void }) {
         </div>
       </Panel>
 
+      <CapabilityOptionsEditor value={config.capabilities} onChange={options => patch(draft => { draft.capabilities = options; })} />
       <Panel
         title="Effective scope"
         footer={

@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "boundary": "Existing native evidence; temporary local analysis; no cloud calls; original file hashes unchanged",
+  "coverage": {
+    "utilization": {
+      "rows": 10,
+      "status": "unavailable",
+      "completeWindow": false
+    },
+    "sizing": {
+      "rows": 10,
+      "status": "collected samples",
+      "completeWindow": false
+    },
+    "jobs": {
+      "rows": 26,
+      "status": "collected samples",
+      "completeWindow": false
+    },
+    "queries": {
+      "rows": 224,
+      "status": "collected samples",
+      "completeWindow": false
+    },
+    "network": {
+      "rows": 10,
+      "status": "unavailable",
+      "completeWindow": false
+    },
+    "posture": {
+      "rows": 6,
+      "status": "collected samples",
+      "completeWindow": false
+    },
+    "assets": {
+      "rows": 0,
+      "status": "unavailable",
+      "completeWindow": false
+    },
+    "commitments": {
+      "rows": 0,
+      "status": "unavailable",
+      "completeWindow": false
+    }
+  },
+  "findings": 14,
+  "legacyResultsLoaded": true
+}

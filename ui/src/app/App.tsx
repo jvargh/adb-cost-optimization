@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Callout, ErrorBoundary, GuardrailStrip, MockBanner, Panel, ThemeToggle } from '@/components';
 import { ConfigurePage } from '@/features/configure/ConfigurePage';
 import { ValidatePage } from '@/features/validate/ValidatePage';
+import { ValidationActions } from '@/features/validate/ValidationActions';
+import { EvidenceImport } from '@/features/configure/EvidenceImport';
 import { PermissionSetupPanel } from '@/features/validate/PermissionSetupPanel';
 import { usePermissionStore } from '@/state/permissionStore';
 import { ValidationProgressPanel } from '@/features/validate/ValidationProgressPanel';
@@ -11,26 +13,26 @@ import { RunPage } from '@/features/run/RunPage';
 import { ResultsPage } from '@/features/results/ResultsPage';
 import { SnapshotPicker } from '@/features/results/SnapshotPicker';
 import { SnapshotSummary } from '@/features/results/SnapshotSummary';
+import { getCollectionOutcome } from '@/features/results/CollectionOutcome';
 import { SnapshotHistory } from '@/features/results/SnapshotHistory';
-import { ReviewPage } from '@/features/review/ReviewPage';
 import { ExportPage } from '@/features/export/ExportPage';
-import { isReviewComplete, useConfigStore, useResultsStore, useRunStore } from '@/state';
+import { useConfigStore, useResultsStore, useRunStore } from '@/state';
 import { getBackend, setActiveScenario, activeScenarioId } from '@/api';
 import scenarios from '../../mock/fixtures/scenarios.json';
 
-type StepId = 'configure' | 'validate' | 'run' | 'results' | 'review' | 'export';
+type StepId = 'configure' | 'validate' | 'run' | 'results' | 'export';
 
 const STEPS: { id: StepId; label: string; caption: string }[] = [
   { id: 'configure', label: 'Configure', caption: 'Scope, window, and safety' },
   { id: 'validate', label: 'Validate', caption: 'Pre-flight and approvals' },
   { id: 'run', label: 'Run analysis', caption: 'Collect and monitor' },
   { id: 'results', label: 'Visualize results', caption: 'Executive and technical' },
-  { id: 'review', label: 'Review', caption: 'Human sign-off' },
-  { id: 'export', label: 'Export', caption: 'Report and evidence' },
+  { id: 'export', label: 'Review & export', caption: 'Downloads and optional review' },
 ];
 
 export function App() {
   const freshAssessment = new URLSearchParams(window.location.search).get('new') === '1';
+  const [importMode, setImportMode] = useState(() => new URLSearchParams(window.location.search).get('import') === '1');
   const [initialRunId] = useState(() => freshAssessment ? null : new URLSearchParams(window.location.search).get('run'));
   const [step, setStep] = useState<StepId>(initialRunId ? 'results' : 'configure');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -50,9 +52,11 @@ export function App() {
   const validationProgress = useConfigStore((s) => s.validationProgress);
   const validationError = useConfigStore((s) => s.validationError);
   const runPhase = useRunStore((s) => s.phase);
+  const runSources = useRunStore((s) => s.sources);
   const refreshRuns = useRunStore((s) => s.refreshRuns);
   const loadResults = useResultsStore((s) => s.load);
   const results = useResultsStore((s) => s.results);
+  const resultsError = useResultsStore((s) => s.error);
   const selectedRunId = useResultsStore((s) => s.runId);
   const snapshotMode = Boolean(selectedRunId);
   const exportedArtifactPaths = useResultsStore((s) => s.exportedArtifactPaths);
@@ -67,19 +71,22 @@ export function App() {
   }, [refreshRuns]);
 
   useEffect(() => {
-    if (!snapshotMode && ['configure', 'validate', 'run'].includes(step) && !config && !configLoading && !configError) void bootstrapConfig(freshAssessment);
-  }, [bootstrapConfig, config, configLoading, configError, freshAssessment, snapshotMode, step]);
+    if (!importMode && !snapshotMode && ['configure', 'validate', 'run'].includes(step) && !config && !configLoading && !configError) void bootstrapConfig(freshAssessment);
+  }, [bootstrapConfig, config, configLoading, configError, freshAssessment, snapshotMode, step, importMode]);
 
   const openResults = useCallback(
     (runId: string) => {
       const url = new URL(window.location.href);
       url.searchParams.delete('new');
+      url.searchParams.delete('import');
       url.searchParams.set('run', runId);
       window.history.replaceState(null, '', url);
       void loadResults(runId);
+      void refreshRuns();
+      setImportMode(false);
       setStep('results');
     },
-    [loadResults],
+    [loadResults, refreshRuns],
   );
 
   useEffect(() => {
@@ -94,25 +101,25 @@ export function App() {
     );
   }, [config, configLoading, configError, approvals, estate]);
 
-  const stepState = (id: StepId): 'done' | 'available' | 'disabled' => {
+  const collectionOutcome = results ? getCollectionOutcome(results) : null;
+  const liveCollectionOutcome = getCollectionOutcome({ manifest: { status: 'passed' }, collection: runSources });
+  const stepState = (id: StepId): 'done' | 'attention' | 'available' | 'disabled' => {
     switch (id) {
       case 'configure':
         if (snapshotMode) return results ? 'done' : 'available';
         return configurationComplete ? 'done' : 'available';
       case 'validate':
-        if (snapshotMode) return 'available';
+        if (snapshotMode) return resultsError ? 'attention' : collectionOutcome ? collectionOutcome.needsAttention ? 'attention' : 'done' : 'available';
+        if (!validating && (validationError || (validation && !validation.canRun))) return 'attention';
         return !validating && !validationError && validation?.canRun ? 'done' : config ? 'available' : 'disabled';
       case 'run':
-        if (snapshotMode) return results && results.manifest.status !== 'failed' ? 'done' : 'available';
-        return runPhase === 'completed' || (runPhase === 'idle' && results && results.manifest.status !== 'failed')
-          ? 'done'
-          : config
-            ? 'available'
-            : 'disabled';
+        if (snapshotMode) return resultsError ? 'attention' : collectionOutcome ? collectionOutcome.needsAttention ? 'attention' : 'done' : 'available';
+        if (runPhase === 'failed' || runPhase === 'canceled') return 'attention';
+        if (runPhase === 'completed') return liveCollectionOutcome.needsAttention ? 'attention' : 'done';
+        if (runPhase === 'idle' && collectionOutcome) return collectionOutcome.needsAttention ? 'attention' : 'done';
+        return config ? 'available' : 'disabled';
       case 'results':
         return results ? 'done' : 'available';
-      case 'review':
-        return isReviewComplete(results) ? 'done' : results ? 'available' : 'disabled';
       case 'export':
         return exportedArtifactPaths.length > 0 ? 'done' : results ? 'available' : 'disabled';
       default:
@@ -152,8 +159,11 @@ export function App() {
     }
   };
   const newAssessment = () => {
+    if (!window.confirm('Start a new assessment setup? Unsaved setup and review edits will be discarded. Saved snapshots are kept.')) return;
     const url = new URL(window.location.href);
     url.searchParams.delete('run');
+    url.searchParams.delete('import');
+    setImportMode(false);
     url.searchParams.set('new', '1');
     window.history.replaceState(null, '', url);
     useRunStore.getState().reset();
@@ -168,7 +178,9 @@ export function App() {
   const statusLabel = (id: StepId): string => {
     if (snapshotMode) {
       if (id === 'configure') return 'Saved scope';
-      if (id === 'validate') return 'Historical checks';
+      if (id === 'validate') return resultsError ? 'Saved checks unavailable' : collectionOutcome
+        ? collectionOutcome.needsAttention ? 'Saved checks need attention' : 'Saved checks passed'
+        : 'Loading saved checks';
       if (id === 'run') return results ? `Saved run - ${results.manifest.status}` : 'Loading snapshot';
     }
     switch (id) {
@@ -180,11 +192,10 @@ export function App() {
         : validationError ? 'Stopped - needs attention'
         : validation ? validation.canRun ? `Ready${validation.warningCount ? ' with warnings' : ''}` : 'Blocked'
         : 'Not checked';
-      case 'run': return runActive ? 'Running' : runPhase === 'completed' ? 'Finished'
+      case 'run': return runActive ? 'Running' : runPhase === 'completed' ? liveCollectionOutcome.needsAttention ? 'Finished - needs attention' : 'Finished - checks passed'
         : runPhase === 'failed' ? 'Failed' : runPhase === 'canceled' ? 'Canceled'
         : validating ? 'Waiting for validation' : results ? 'Saved run available' : 'Not started';
       case 'results': return results ? 'Saved results open' : 'No results open';
-      case 'review': return isReviewComplete(results) ? 'Complete' : results ? 'Needs review' : 'Needs results';
       case 'export': return exportedArtifactPaths.length ? 'Downloaded' : results ? 'Ready to export' : 'Needs results';
     }
   };
@@ -205,6 +216,7 @@ export function App() {
             const classes = ['nav-item'];
             if (item.id === step) classes.push('active');
             if (state === 'done') classes.push('done');
+            if (state === 'attention') classes.push('attention');
             if (state === 'disabled') classes.push('disabled');
             return (
               <button
@@ -218,8 +230,8 @@ export function App() {
                 <span className="nav-step">{index + 1}</span>
                 <span className="stack-sm" style={{ minWidth: 0 }}>
                   <span>{item.label}</span>
-                  <span className="muted truncate">{item.caption}</span>
-                  <Badge tone={!snapshotMode && ((item.id === 'validate' && validating) || (item.id === 'run' && runActive)) ? 'pending' : 'neutral'}>
+                  <span className="muted truncate">{snapshotMode && item.id === 'validate' ? 'Saved collection checks' : item.caption}</span>
+                  <Badge tone={state === 'attention' ? 'danger' : state === 'done' ? 'ok' : !snapshotMode && ((item.id === 'validate' && validating) || (item.id === 'run' && runActive)) ? 'pending' : 'neutral'}>
                     {statusLabel(item.id)}
                   </Badge>
                 </span>
@@ -233,10 +245,15 @@ export function App() {
         <header className="topbar">
           <div className="panel-header-text">
             <span className="topbar-title">{STEPS.find((s) => s.id === step)?.label}</span>
-            <span className="topbar-sub">{STEPS.find((s) => s.id === step)?.caption}</span>
+            <span className="topbar-sub">{snapshotMode && step === 'validate' ? 'Saved collection checks' : STEPS.find((s) => s.id === step)?.caption}</span>
           </div>
           <div className="topbar-actions">
             <GuardrailStrip />
+            <button type="button" className="btn btn-sm" disabled={resetBlocked} onClick={() => {
+              if (!window.confirm('Open local evidence import? Save any review edits first. Existing saved snapshots are kept.')) return;
+              const url = new URL(window.location.href); url.searchParams.set('import', '1'); url.searchParams.delete('run'); url.searchParams.delete('new'); window.history.replaceState(null, '', url);
+              setImportMode(true); setStep('configure');
+            }}>Import evidence</button>
             <button
               type="button"
               className="btn btn-sm new-assessment"
@@ -323,15 +340,18 @@ export function App() {
               </Callout>
             )}
             <ErrorBoundary label={STEPS.find((s) => s.id === step)?.label ?? 'This step'} key={step}>
-              {snapshotMode && ['configure', 'validate', 'run'].includes(step) && <SnapshotSummary onResults={() => setStep('results')} />}
-              {!snapshotMode && step === 'configure' && <ConfigurePage onValidate={startValidation} />}
+              {importMode && step === 'configure' && <EvidenceImport onOpen={openResults} onCancel={() => {
+                const url = new URL(window.location.href); url.searchParams.delete('import'); window.history.replaceState(null, '', url); setImportMode(false);
+              }} />}
+              {!importMode && snapshotMode && ['configure', 'validate', 'run'].includes(step) && <SnapshotSummary onResults={() => setStep('results')} />}
+              {!importMode && !snapshotMode && step === 'configure' && <ConfigurePage onValidate={startValidation} />}
               {!snapshotMode && step === 'validate' && <div className="stack-lg">
-                <ValidatePage onRun={() => setStep('run')} onConfigure={() => setStep('configure')} />
-                <PermissionSetupPanel onRun={() => setStep('run')} />
+                <ValidatePage onRun={() => setStep('run')} onConfigure={() => setStep('configure')} hideContinue />
+                <PermissionSetupPanel hideActions />
+                <Panel title="Next step: analysis"><ValidationActions onRun={() => setStep('run')} showValidation={false} /></Panel>
               </div>}
               {!snapshotMode && step === 'run' && <RunPage onViewResults={openResults} onValidate={() => setStep('validate')} />}
-              {step === 'results' && <ResultsPage onReview={() => setStep('review')} />}
-              {step === 'review' && <ReviewPage onExport={() => setStep('export')} />}
+              {step === 'results' && <ResultsPage onExport={() => setStep('export')} />}
               {step === 'export' && <ExportPage />}
             </ErrorBoundary>
           </div>

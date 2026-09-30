@@ -9,6 +9,37 @@ the backend did not collect.
 
 That principle is enforced structurally by a single seam.
 
+## Capability extension (2026-09-29)
+
+The [capability analyzer](../../assessment/model/capabilities.py) belongs to the existing
+Python pipeline and writes `capability-analysis.json`. The UI server
+[operations module](../server/capability_operations.py) performs local import, scoped
+paging, child re-analysis, XLSX serialization and guarded publication. It calls the same
+analyzer for commitment scenarios; React does not calculate authoritative costs.
+
+The backend seam also exposes `capabilityOperation<T>(runId, action, payload)`.
+Routes are POST `/api/capabilities/import` and
+`/api/runs/{id}/capabilities/{dataset|reanalyze|workbook|scenario|publish}`.
+The existing loopback/origin/content-type guard protects all routes. Preview requests
+are read-only. Publication additionally requires idle live operations, an exact preview
+fingerprint, explicit destination/write/compute approval, and a persisted attempt audit.
+No automatic write retries, DDL, grants, overwrites or embedded credentials are allowed.
+
+Results carry an optional summary rather than bulk datasets; paged reads allow 1-200
+rows. Per-resource `findingId` supplements legacy `detectorId`. Imported monetary totals
+and baseline amounts are nullable, with `costAvailable=false`. Binary artifacts use
+base64 transport with an explicit encoding and XLSX MIME type. Workbooks describe the
+full saved run/current saved review; a revision hash distinguishes exported contents.
+
+Imports and re-analysis persist separate run folders; parents and their reviews remain
+immutable. Legacy raw JSON-encoded SQL structs, singleton task objects and opaque
+notification redaction are supported without inferring missing routing or telemetry.
+The PowerShell optional-assets collector preserves per-source failure/truncation,
+and native collector concurrency is bounded to 1-4 (default sequential).
+
+See the [user guide](../USER-GUIDE.md) for the supported subset and remaining plan
+boundaries, and the [acceptance record](capabilities-test-plan.md) for verification.
+
 ## The seam: `src/api/backend.ts`
 
 Every piece of data the UI displays arrives through one interface:
@@ -142,11 +173,14 @@ discovery/sign-in retries within a fresh setup. App owns configuration bootstrap
 request sequence prevents stale discovery from restoring a cleared configuration.
 Reset is disabled during discovery, sign-in, validation, or an active run.
 
-Sidebar completion is independent of the active page: unfinished steps are gray and
-completed steps green, with a neutral/green outline for selection and numbered markers.
-Configure uses the existing local validation checks (SQL approval belongs to Validate);
-Validate requires backend readiness, Run requires completion, Visualize requires loaded
-results, Review requires all decisions and reviewers, and Export requires a download.
+The five-step sidebar separates selection from completion: unfinished steps are gray,
+successful checks green, and failed/incomplete completed checks red, with numbered markers.
+Configure uses local checks (SQL approval belongs to Validate); live Validate uses
+backend readiness. Saved Validate/Run use recorded collection outcomes, including
+partial and skipped distinctions. Visualize requires loaded results.
+Review & export requires a download, not full sign-off. Its collapsed review form
+updates selected decision/reviewer/note fields while retaining the remaining record.
+Workbook/publication actions cannot reload results while review edits are unsaved.
 An active, failed, or canceled run is not made green by an older loaded snapshot.
 
 Validation uses a worker thread so HTTP requests remain responsive while PowerShell reads

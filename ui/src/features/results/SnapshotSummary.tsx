@@ -1,6 +1,7 @@
 import { Callout, KeyValue, Panel, Spinner, StatusBadge } from '@/components';
 import { formatDateTime } from '@/lib/format';
 import { useResultsStore } from '@/state';
+import { CollectionOutcome } from './CollectionOutcome';
 
 export function SnapshotSummary({ onResults }: { onResults: () => void }) {
   const { results, loading, error } = useResultsStore();
@@ -11,11 +12,7 @@ export function SnapshotSummary({ onResults }: { onResults: () => void }) {
 
   return (
     <div className="stack-lg">
-      <Callout tone="info" title="Historical snapshot - no checks are running">
-        These are the scope and collection results saved with this run, not a new validation.
-        A separate pre-run validation report is not stored in this snapshot.
-        Choose New assessment to configure a fresh run; validation then requires an explicit action.
-      </Callout>
+      <CollectionOutcome results={results} />
       <Panel title="Saved assessment" actions={<StatusBadge status={manifest.status} />}>
         <KeyValue items={[
           { label: 'Run', value: manifest.runId },
@@ -34,7 +31,7 @@ export function SnapshotSummary({ onResults }: { onResults: () => void }) {
             <div className="stack-sm" key={`${source.name}-${index}`}>
               <div className="row-between"><span className="break-anywhere">{source.name}</span><StatusBadge status={source.status} /></div>
               {(source.error || source.limitations.length > 0) && (
-                <details className="break-anywhere">
+                <details className="break-anywhere" open={source.status !== 'passed'}>
                   <summary>Saved limitations and errors</summary>
                   {source.error && <p>{source.error}</p>}
                   {source.limitations.length > 0 && <ul>{source.limitations.map((item, itemIndex) => <li key={itemIndex}>{item}</li>)}</ul>}

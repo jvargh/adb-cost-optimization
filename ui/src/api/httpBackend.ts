@@ -100,6 +100,10 @@ class HttpRunHandle implements RunHandle {
 }
 
 export class HttpAssessmentBackend implements AssessmentBackend {
+  capabilityOperation<T>(runId: string | null, action: string, input: object): Promise<T> {
+    const path = runId ? `/api/runs/${encodeURIComponent(runId)}/capabilities/${encodeURIComponent(action)}` : `/api/capabilities/${encodeURIComponent(action)}`;
+    return api<T>(path, { method: 'POST', body: JSON.stringify(input), signal: AbortSignal.timeout(240000) });
+  }
   readonly id = 'local-assessment-api';
   readonly isMock = false;
 

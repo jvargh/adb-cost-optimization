@@ -122,7 +122,7 @@ export const useResultsStore = create<ResultsState>((set, get) => ({
 
 export function isReviewComplete(results: AssessmentResults | null): boolean {
   if (!results) return false;
-  const findingIds = new Set(results.candidates.findings.map((finding) => finding.detectorId));
+  const findingIds = new Set(results.candidates.findings.map((finding) => finding.findingId ?? finding.detectorId));
   if (findingIds.size === 0) return true;
   const completed = new Set(
     results.review
@@ -143,7 +143,7 @@ export function filterFindings(findings: Finding[], filters: ResultsFilters): Fi
   return findings.filter((finding) => {
     if (!matches(filters.subscriptionIds, finding.scope.subscriptionId)) return false;
     if (!matches(filters.resourceGroups, finding.scope.resourceGroup)) return false;
-    if (!matches(filters.workspaces, finding.scope.workspaceName)) return false;
+    if (!matches(filters.workspaces, finding.scope.workspaceId ?? finding.scope.workspaceName)) return false;
     if (!matches(filters.workloads, finding.scope.workload)) return false;
     if (!matches(filters.categories, finding.category)) return false;
     if (!matches(filters.confidence, finding.confidence.level)) return false;

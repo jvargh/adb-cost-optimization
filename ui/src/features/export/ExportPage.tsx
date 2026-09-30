@@ -1,15 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge, Callout, DataTable, EmptyState, Panel, type Column } from '@/components';
 import { useResultsStore } from '@/state';
 import { getBackend } from '@/api';
 import { formatBytes } from '@/lib/format';
 import type { ExportArtifact } from '@/types';
+import { CapabilityExports } from './CapabilityExports';
+import { ReviewPage } from '@/features/review/ReviewPage';
+import { MarkdownPreview } from './MarkdownPreview';
+
+interface ArtifactPreview {
+  path: string;
+  markdown: boolean;
+  content: string | null;
+  error: string | null;
+}
 
 export function ExportPage() {
   const { results, runId, exportedArtifactPaths, markArtifactExported } = useResultsStore();
-  const [preview, setPreview] = useState<{ path: string; content: string } | null>(null);
+  const [preview, setPreview] = useState<ArtifactPreview | null>(null);
+  const previewRegion = useRef<HTMLDivElement>(null);
+  const previewRequest = useRef(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reviewDirty, setReviewDirty] = useState(false);
+
+  useEffect(() => {
+    setPreview(null);
+    return () => { previewRequest.current += 1; };
+  }, [runId]);
+
+  useEffect(() => {
+    if (preview) {
+      previewRegion.current?.focus({ preventScroll: true });
+      previewRegion.current?.scrollIntoView({ block: 'start' });
+    }
+  }, [preview]);
 
   if (!results || !runId) {
     return (
@@ -25,7 +50,8 @@ export function ExportPage() {
     setError(null);
     try {
       const payload = await getBackend().readArtifact(runId, artifact.relativePath);
-      const blob = new Blob([payload.content], { type: payload.mimeType });
+      const content = payload.encoding === 'base64' ? Uint8Array.from(atob(payload.content), c => c.charCodeAt(0)) : payload.content;
+      const blob = new Blob([content], { type: payload.mimeType });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -43,15 +69,23 @@ export function ExportPage() {
   };
 
   const open = async (artifact: ExportArtifact) => {
-    setBusy(artifact.relativePath);
-    setError(null);
+    const request = ++previewRequest.current;
+    const next: ArtifactPreview = {
+      path: artifact.relativePath,
+      markdown: artifact.kind === 'markdown' || /\.(md|markdown)$/i.test(artifact.relativePath),
+      content: null,
+      error: null,
+    };
+    setPreview(next);
     try {
       const payload = await getBackend().readArtifact(runId, artifact.relativePath);
-      setPreview({ path: payload.relativePath, content: payload.content });
+      if (request !== previewRequest.current) return;
+      if (payload.encoding === 'base64') throw new Error('Binary artifacts cannot be previewed. Download the file instead.');
+      setPreview({ ...next, content: payload.content });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
+      if (request === previewRequest.current) {
+        setPreview({ ...next, error: e instanceof Error ? e.message : String(e) });
+      }
     }
   };
 
@@ -104,7 +138,7 @@ export function ExportPage() {
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => void open(r)}
-            disabled={busy === r.relativePath}
+            disabled={busy === r.relativePath || r.kind === 'xlsx'}
           >
             Preview
           </button>
@@ -122,6 +156,7 @@ export function ExportPage() {
   ];
 
   const sensitiveCount = results.exports.filter((a) => a.sensitivity === 'sensitive').length;
+  const report = results.exports.find((artifact) => artifact.relativePath === 'reports/assessment-report.md');
 
   return (
     <div className="stack-lg">
@@ -131,8 +166,17 @@ export function ExportPage() {
       >
         {exportedArtifactPaths.length > 0
           ? `${exportedArtifactPaths.length} ${exportedArtifactPaths.length === 1 ? 'file has' : 'files have'} been downloaded in this session.`
-          : 'Previewing lets you inspect a file. Download at least one file to mark Export as complete.'}
+          : 'Preview a report or download the files you need. Review is optional; download a file to complete Review & export.'}
+        {report && <div className="row-wrap">
+          <button type="button" className="btn btn-primary" disabled={busy === report.relativePath} onClick={() => void download(report)}>Download report</button>
+          <button type="button" className="btn" disabled={busy === report.relativePath} onClick={() => void open(report)}>Preview report</button>
+        </div>}
       </Callout>
+
+      <ReviewPage key={`review-${runId}`} onDirtyChange={setReviewDirty} />
+      {reviewDirty && <Callout tone="warn" title="Unsaved review changes">
+        Downloads contain saved decisions only. Save or discard edits before generating a workbook or publication plan.
+      </Callout>}
 
       <Callout tone="warn" title="Handle exported evidence as customer data">
         {sensitiveCount} of {results.exports.length} artifacts contain raw or lightly processed
@@ -154,18 +198,31 @@ export function ExportPage() {
         <DataTable columns={columns} rows={results.exports} rowKey={(r) => r.relativePath} />
       </Panel>
 
+      <CapabilityExports key={`capabilities-${runId}`} reviewPending={reviewDirty} />
+
       {preview && (
+        <div ref={previewRegion} className="artifact-preview" role="region" aria-label="Artifact preview" tabIndex={-1}>
         <Panel
-          title="Preview"
+          title={preview.markdown ? 'Report preview' : 'Artifact preview'}
           subtitle={<span className="mono">{preview.path}</span>}
           actions={
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPreview(null)}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => {
+              previewRequest.current += 1;
+              setPreview(null);
+            }}>
               Close
             </button>
           }
         >
-          <pre className="markdown-preview">{preview.content}</pre>
+          {preview.error
+            ? <Callout tone="danger" title="Preview failed">{preview.error}</Callout>
+            : preview.content === null
+              ? <div role="status">Loading preview...</div>
+              : preview.markdown
+                ? <MarkdownPreview content={preview.content} path={preview.path} artifacts={results.exports} onPreview={artifact => void open(artifact)} />
+                : <pre className="markdown-preview">{preview.content}</pre>}
         </Panel>
+        </div>
       )}
     </div>
   );

@@ -71,6 +71,21 @@ class ReportRendererTests(unittest.TestCase):
             self.assertIn("## 17. Human validation and sign-off", report)
             self.assertLess(drivers.index("workspace-a"), drivers.index("workspace-b"))
 
+    def test_resource_findings_keep_unique_ids_in_report_and_csv(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self._materialize_fixture(root)
+            path = root / "optimization-candidates.json"
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["findings"] = [{**data["findings"][0], "detectorId": "CAP-SIZING", "findingId": name}
+                                for name in ("resource-instance-one", "resource-instance-two")]
+            path.write_text(json.dumps(data), encoding="utf-8")
+            render_reports(root)
+            for file in ("assessment-report.md", "prioritized-backlog.csv", "human-validation-sign-off.csv"):
+                text = (root / "reports" / file).read_text(encoding="utf-8")
+                for name in ("resource-instance-one", "resource-instance-two"):
+                    self.assertIn(name, text)
+
     def test_pipeline_invokes_report_renderer(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

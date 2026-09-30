@@ -5,7 +5,7 @@ import { usePermissionStore } from '@/state/permissionStore';
 import { ManualPermissionGuide } from './ManualPermissionGuide';
 import { ValidationActions } from './ValidationActions';
 
-export function PermissionSetupPanel({ onRun }: { onRun?: () => void }) {
+export function PermissionSetupPanel({ onRun, hideActions = false }: { onRun?: () => void; hideActions?: boolean }) {
   const { config, approvals, validating, loading, signingIn, resetValidation } = useConfigStore();
   const phase = useRunStore((state) => state.phase);
   const { job, busy, requesting, error, preview, apply, refresh, clear } = usePermissionStore();
@@ -122,7 +122,7 @@ export function PermissionSetupPanel({ onRun }: { onRun?: () => void }) {
               {' '}When validation allows it, choose Continue to run, then Start read-only assessment on step 3.
               Continuing does not start collection automatically. No new assessment is needed.
             </Callout>
-            <ValidationActions onRun={onRun} />
+            {!hideActions && <ValidationActions onRun={onRun} />}
           </section>
         )}
         <ManualPermissionGuide

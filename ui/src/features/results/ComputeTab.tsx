@@ -8,10 +8,10 @@ import type { AssessmentResults, ComputeRecord, WarehouseRecord, WorkloadRecord 
 export function ComputeTab({ results }: { results: AssessmentResults }) {
   const filters = useResultsStore((s) => s.filters);
 
-  const inScope = <T extends { workspaceName: string }>(rows: T[]) =>
+  const inScope = <T extends { workspaceName: string; workspaceId?: string }>(rows: T[]) =>
     filters.workspaces.length === 0
       ? rows
-      : rows.filter((r) => filters.workspaces.includes(r.workspaceName));
+      : rows.filter((r) => filters.workspaces.includes(r.workspaceId ?? r.workspaceName));
 
   const compute = useMemo(() => inScope(results.compute), [results.compute, filters.workspaces]);
   const warehouses = useMemo(

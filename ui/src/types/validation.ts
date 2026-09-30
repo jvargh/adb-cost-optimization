@@ -7,6 +7,7 @@
 export type ValidationSeverity = 'blocker' | 'warning' | 'info';
 
 export type ValidationCheckId =
+  | 'capability-plan'
   | 'customer-id'
   | 'assessment-id'
   | 'auth-context'

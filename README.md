@@ -1,14 +1,15 @@
+![Azure Databricks cost and workload assessment illustration showing a local web dashboard and the five-step assessment workflow.](blog/assets/readme-banner.png)
+
 # Azure Databricks Cost Optimization
 
-A collection of tools, automation, and workshop assets for assessing and improving Azure Databricks cost efficiency. The repository combines a read-only assessment pipeline, a local visualization UI, reproducible Azure workshop infrastructure, and a Databricks-native discovery and analysis utility.
+A collection of tools, automation, and workshop assets for assessing and improving Azure Databricks cost efficiency. The repository combines a read-only assessment pipeline, a local visualization UI, and reproducible Azure workshop infrastructure.
 
 ## Highlights
 
 - **Read-only cost assessment** collects Azure and Databricks evidence without modifying resources or intentionally starting stopped compute.
 - **Deterministic analysis and reporting** normalizes collected data, reconciles costs, identifies optimization opportunities, and produces review-ready Markdown, JSON, and CSV outputs.
-- **Guided local UI** supports the complete Configure → Validate → Run → Visualize → Review → Export workflow, including saved assessment snapshots and an offline mock mode.
+- **Guided local UI** supports Configure → Validate → Run analysis → Visualize results → Review & export, including saved assessment snapshots and offline evidence review.
 - **Reproducible workshop environment** provisions a guarded Azure Databricks lab with Bicep, PowerShell, sample workloads, cost controls, validation, and safe teardown.
-- **Databricks-native scanner and analyzer** inventories workspace objects, applies configurable analysis rules, and supplies dashboard and notebook assets.
 - **Human validation gates** keep recommendations advisory and distinguish incomplete evidence, delayed telemetry, and modeled savings from realized savings.
 
 ## Repository layout
@@ -18,7 +19,6 @@ A collection of tools, automation, and workshop assets for assessing and improvi
 | [`assessment/`](assessment/) | Read-only PowerShell collectors, Python analysis pipeline, detector catalog, reports, tests, and operator guidance. |
 | [`ui/`](ui/) | React/Vite assessment UI and loopback-only Python host for local orchestration and visualization. |
 | [`infra/`](infra/) | Bicep modules, Databricks configuration, sample workloads, deployment scripts, and infrastructure tests for the L300 workshop. |
-| [`scanner-analyzer/`](scanner-analyzer/) | Databricks discovery notebooks, Python toolkit package, analyzer rules, and Lakeview dashboard. |
 | [`docs/`](docs/) | Requirements, specifications, design material, and supporting documentation. |
 | [`blog/`](blog/) | Walkthrough content and media for the assessment experience. |
 
@@ -74,9 +74,7 @@ For configuration, automation, offline analysis, output semantics, and troublesh
 
 The launcher starts a loopback-only host at `http://127.0.0.1:8765`. The UI uses the existing assessment engine; it does not duplicate collection or analysis logic. See the [UI README](ui/README.md) for build, test, mock-mode, and operational details.
 
-### Explore the Databricks-native analyzer
-
-Follow the [scanner and analyzer setup guide](scanner-analyzer/README.md) to install the wheel in Databricks, configure Unity Catalog storage, run discovery and analysis notebooks, and import the supplied dashboard.
+The [local web UI walkthrough](blog/azure-databricks-assessment-optimization-workbench.md) covers cost, workload efficiency, and job health through the five-step workflow.
 
 ### Provision the workshop environment
 
@@ -141,7 +139,6 @@ Invoke-Pester -Path .\infra\tests
 - [Assessment user guide](assessment/USER-GUIDE.md)
 - [UI operations and development](ui/README.md)
 - [Workshop infrastructure](infra/README.md)
-- [Databricks scanner and analyzer](scanner-analyzer/README.md)
 - [End-to-end specification](docs/AzureDatabricksCostOptimizationEndToEndSpecification.md)
 - [Assessment toolkit requirements](docs/AzureDatabricksAssessmentToolkitRequirements.md)
 - [Workshop requirements](docs/L300AzureDatabricksCostOptimizationWorkshopRequirements.md)

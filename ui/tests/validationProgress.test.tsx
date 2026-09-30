@@ -7,7 +7,7 @@ import { ValidatePage } from '@/features/validate/ValidatePage';
 import { ValidationProgressPanel } from '@/features/validate/ValidationProgressPanel';
 import { summarizeValidationProgress } from '@/lib/validationProgress';
 import { useConfigStore, useResultsStore, useRunStore } from '@/state';
-import type { AssessmentConfig, SubscriptionOption, ValidationProgress } from '@/types';
+import type { AssessmentConfig, SubscriptionOption, ValidationProgress, ValidationReport } from '@/types';
 import defaultConfig from '../mock/fixtures/default-config.json';
 import estate from '../mock/fixtures/estate.json';
 
@@ -95,6 +95,57 @@ it('keeps validation visible across Configure, Run, and Visualize without starti
   fireEvent.click(screen.getByRole('button', { name: /Visualize results.*Executive and technical/ }));
   expect(screen.getByText('No new results yet - validation is still running')).toBeInTheDocument();
   expect(screen.getByText('1/3 checks completed')).toBeInTheDocument();
+});
+
+it('keeps the validation trigger above progress and only Continue beneath permissions', async () => {
+  const backend = new MockAssessmentBackend();
+  setBackend(backend);
+  let finish: ((report: ValidationReport) => void) | undefined;
+  const validate = vi.spyOn(backend, 'validate').mockImplementation((_config, _approvals, onProgress) =>
+    new Promise<ValidationReport>((resolve) => {
+      finish = resolve;
+      onProgress?.(structuredClone(progress));
+    }));
+  const startRun = vi.spyOn(backend, 'startRun');
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: /2 Validate/ }));
+  const approvals = screen.getByRole('checkbox', { name: /^Approve SQL Warehouse auto-start/ });
+  fireEvent.click(approvals);
+  const trigger = screen.getByRole('button', { name: 'Run validation' });
+  const permissions = screen.getByRole('heading', { name: 'Pipeline timeline permission setup' });
+  const continuation = screen.getByRole('button', { name: 'Continue to run' });
+  const before = (first: Node, second: Node) =>
+    expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  before(approvals, trigger);
+  before(trigger, permissions);
+  before(permissions, continuation);
+  expect(continuation).toBeDisabled();
+
+  fireEvent.click(trigger);
+  await waitFor(() => expect(validate).toHaveBeenCalledOnce());
+  const running = screen.getByRole('button', { name: 'Validation running...' });
+  expect(running).toBe(trigger);
+  expect(running).toBeDisabled();
+  expect(approvals).toBeDisabled();
+  const progressLabel = screen.getByText('1/3 checks completed');
+  before(running, progressLabel);
+  before(progressLabel, permissions);
+  expect(screen.getAllByRole('button', { name: 'Continue to run' })).toHaveLength(1);
+  expect(continuation).toBeDisabled();
+  expect(startRun).not.toHaveBeenCalled();
+
+  if (!finish) throw new Error('Validation was not started.');
+  await act(async () => finish?.({
+    generatedAtUtc: start, checks: [], blockerCount: 0, warningCount: 0,
+    canRun: true, requiresSqlWarehouseApproval: false,
+  }));
+  expect(screen.getByRole('button', { name: 'Re-run validation' })).toBe(trigger);
+  before(trigger, screen.getByRole('heading', { name: 'Pipeline timeline permission setup' }));
+  expect(approvals).toBeEnabled();
+  expect(continuation).toBeEnabled();
+  fireEvent.click(continuation);
+  expect(screen.getByRole('button', { name: 'Start read-only assessment' })).toBeVisible();
+  expect(startRun).not.toHaveBeenCalled();
 });
 
 describe('validation errors and stale results', () => {

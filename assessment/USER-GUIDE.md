@@ -1,6 +1,17 @@
 # Azure Databricks Assessment Toolkit User Guide
 
-For the full workshop, lab, toolkit, output, validation, and remaining-work requirements, see the [consolidated end-to-end specification](../AzureDatabricksCostOptimizationEndToEndSpecification.md). This guide remains the concise operator reference.
+For the full workshop, lab, toolkit, output, validation, and remaining-work requirements, see the [consolidated end-to-end specification](../docs/AzureDatabricksCostOptimizationEndToEndSpecification.md). This guide remains the concise operator reference.
+
+## Using the browser UI and new analyses
+
+Start `.\ui\Start-AssessmentUi.ps1` from the workspace root, then follow the
+[UI user guide](../ui/USER-GUIDE.md). It documents all CAP-01 through CAP-13 entry points,
+profiles, utilization/sizing/jobs/queries/network, the supported posture subset, assets,
+offline CSV/JSON import, child re-analysis, commitment-input requirements and XLSX.
+The [recorded acceptance plan](../ui/docs/capabilities-test-plan.md) includes test results
+and screenshots. Local import/re-analysis do not contact Azure or Databricks.
+The optional UI dashboard publisher is separately approved and is not part of this
+read-only CLI collector. No scanner notebook/wheel deployment is required.
 
 ## Pick the customer scope and run
 
@@ -197,6 +208,22 @@ For a run outside the default output directory:
 | `failed` | A collector failed and preserved an explicit error |
 
 Never interpret missing, partial, pending, or skipped evidence as zero cost or proof of healthy behavior.
+
+Intentional skips do not make the aggregate run partial. Spark deep dive is skipped
+when no per-workspace job run IDs are selected; optional assets are skipped when no
+asset types are selected. Enable these only when their evidence is needed.
+
+Governance audit collection automatically splits a time window when Databricks
+rejects its INLINE result for exceeding 25 MiB. Sub-windows keep the original
+inclusive start/exclusive end boundaries, so boundary events are not duplicated.
+`analysis.maxPages` bounds SQL-window attempts (including rejected attempts) and
+continues to bound chunk pages within each query. A remaining window or truncated
+result is explicitly partial; a non-size error is not suppressed. The configured SQL
+timeout remains per statement, not a whole-assessment deadline. Splitting can add SQL
+work and duration within the approved warehouse scope.
+
+Empty JSON job-notification objects are supported without weakening identity
+redaction. These collector fixes apply to new collection, not existing snapshots.
 
 ## Safety
 

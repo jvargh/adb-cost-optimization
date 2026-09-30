@@ -1,4 +1,16 @@
 /* ---------- buttons ---------- */
+.results-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--radius-md);
+  background: var(--cp-surface);
+}
+.results-navigation > div { min-width: 0; }
+.results-navigation .tabs { flex-wrap: wrap; }
+fieldset { min-width: 0; border: 1px solid var(--cp-border); border-radius: var(--radius-md); }
 
 .btn {
   display: inline-flex;

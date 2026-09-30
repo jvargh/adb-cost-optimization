@@ -44,6 +44,8 @@ Databricks calls are restricted to:
 - `GET`.
 - `POST /api/2.0/sql/statements` for guarded read-only SQL.
 - `POST /api/2.0/clusters/events` for historical event queries.
+- `POST /api/2.0/mlflow/experiments/search` for optional experiment metadata search,
+  using bounded page-token pagination. This does not create or modify experiments.
 
 SQL is rejected when it contains a guarded mutation keyword such as `CREATE`, `ALTER`, `DROP`, `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `OPTIMIZE`, `VACUUM`, `RESTORE`, `TRUNCATE`, `GRANT`, `REVOKE`, `COPY INTO`, or `CALL`. The static scanner adds a repository-level check before every PowerShell-orchestrated run.
 
@@ -108,4 +110,3 @@ The implemented detector catalog is intentionally smaller than the requirements 
 - Driver on spot capacity.
 
 Every result has evidence, confidence, limitations, no inferred savings by default, and `humanValidationRequired: true`. Missing minimum evidence yields `insufficient_evidence`, not a positive recommendation.
-

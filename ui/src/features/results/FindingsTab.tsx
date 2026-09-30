@@ -126,11 +126,11 @@ export function FindingsTab({ results }: { results: AssessmentResults }) {
         <DataTable
           columns={columns}
           rows={findings}
-          rowKey={(r) => `${r.detectorId}:${r.scope.workspaceName ?? 'estate'}:${r.title}`}
+          rowKey={(r) => r.findingId ?? `${r.detectorId}:${r.scope.workspaceName ?? 'estate'}:${r.title}`}
           onRowClick={(r) => selectFinding(r)}
           selectedKey={
             selectedFinding
-              ? `${selectedFinding.detectorId}:${selectedFinding.scope.workspaceName ?? 'estate'}:${selectedFinding.title}`
+              ? selectedFinding.findingId ?? `${selectedFinding.detectorId}:${selectedFinding.scope.workspaceName ?? 'estate'}:${selectedFinding.title}`
               : null
           }
         />

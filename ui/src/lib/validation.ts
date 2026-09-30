@@ -6,6 +6,7 @@ import type {
 } from '@/types';
 import type { RunApprovals } from '@/api/backend';
 import { DEEP_DIVE_FIELDS, isResourceGroupSelected } from './scopeSelection';
+import { DEFAULT_RULES, MODULES, ASSET_TYPES } from '@/types/capabilities';
 
 /**
  * Pure, synchronously testable validation. Environment checks (CLI presence,
@@ -38,6 +39,18 @@ export function validateConfiguration(input: ValidationInput): ValidationReport 
   checks.push(accountConfigurationCheck(config));
   checks.push(scopeConflictCheck(config, estate));
   checks.push(deepDiveTargetsCheck(config));
+  if (config.capabilities) {
+    const options = config.capabilities;
+    const valid = Number.isInteger(options.concurrency) && options.concurrency >= 1 && options.concurrency <= 4
+      && Object.entries(options.rules).every(([key, value]) => key in DEFAULT_RULES && Number.isFinite(value) && value > 0
+        && value <= (key === 'minimumSamples' || key === 'slowQuerySeconds' ? 100000 : 100))
+      && Object.keys(DEFAULT_RULES).every(key => key in options.rules)
+      && Number.isInteger(options.rules.minimumSamples) && options.rules.idleCpuPercent < options.rules.busyCpuPercent
+      && options.modules.every(m => MODULES.includes(m)) && options.assets.every(a => ASSET_TYPES.some(t => t === a));
+    checks.push({ id: 'capability-plan', title: 'Capability rules and collector limits', severity: 'blocker',
+      group: 'scope', status: valid ? 'pass' : 'fail', detail: valid ? 'Analysis modules, thresholds and bounded concurrency are configured.'
+        : 'Correct rule ranges, minimum sample count and concurrency (1-4) before validation.' });
+  }
 
   const warehouseCheck = sqlWarehouseCheck(config, approvals);
   checks.push(warehouseCheck);

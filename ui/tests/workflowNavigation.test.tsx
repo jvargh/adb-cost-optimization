@@ -26,6 +26,20 @@ describe('workflow navigation', () => {
   });
   afterEach(() => { vi.unstubAllGlobals(); window.history.replaceState(null, '', '/'); });
 
+  it.each([true, false])('colors completed live runs from source results, needs attention: %s', (needsAttention) => {
+    useConfigStore.setState({ config: structuredClone(defaultConfig) as AssessmentConfig });
+    const source = (structuredClone(cleanResults) as AssessmentResults).collection[0];
+    useRunStore.setState({
+      phase: 'completed', runId: 'live-test',
+      sources: [{ ...source, status: needsAttention ? 'partial' : 'passed', error: '' }, { ...source, name: 'Optional', status: 'skipped', error: '' }],
+    });
+    render(<App />);
+    const step = screen.getByRole('button', { name: /3 Run analysis/ });
+    expect(step).toHaveClass(needsAttention ? 'attention' : 'done');
+    fireEvent.click(step);
+    expect(screen.getByText('Assessment finished - snapshot saved').closest('.callout')).toHaveClass(needsAttention ? 'callout-danger' : 'callout-ok');
+  });
+
   it('loads configuration outside the Configure screen and enables earlier workflow steps', async () => {
     render(<App />);
 
@@ -80,14 +94,14 @@ describe('workflow navigation', () => {
     validate.mockRestore();
   });
 
-  it('uses numbered completion states for all six steps and never treats the active page as complete', () => {
+  it('uses five numbered steps and completes Review & export on download without requiring review', () => {
     useConfigStore.setState({
       config: structuredClone(defaultConfig) as AssessmentConfig,
       estate: structuredClone(estate) as SubscriptionOption[],
     });
     render(<App />);
     const steps = () => Array.from(screen.getByRole('navigation').querySelectorAll('.nav-item'));
-    expect(steps().map((step) => step.classList.contains('done'))).toEqual([true, false, false, false, false, false]);
+    expect(steps().map((step) => step.classList.contains('done'))).toEqual([true, false, false, false, false]);
     const ready = { generatedAtUtc: '', checks: [], blockerCount: 0, warningCount: 1, canRun: true, requiresSqlWarehouseApproval: false };
     act(() => useConfigStore.setState({ validation: ready }));
     expect(steps()[1]).toHaveClass('done');
@@ -99,21 +113,19 @@ describe('workflow navigation', () => {
     });
     expect(steps()[1]).not.toHaveClass('done');
     expect(steps()[2]).not.toHaveClass('done');
-    act(() => useRunStore.setState({ phase: 'completed' }));
+    act(() => useRunStore.setState({ phase: 'completed', sources: (structuredClone(cleanResults) as AssessmentResults).collection }));
     expect(steps()[2]).toHaveClass('done');
     act(() => useResultsStore.setState({ results: structuredClone(cleanResults) as AssessmentResults }));
     expect(steps()[3]).toHaveClass('done');
     expect(steps()[4]).not.toHaveClass('done');
-    expect(steps()[5]).not.toHaveClass('done');
-    const reviewed = structuredClone(cleanResults) as AssessmentResults;
-    reviewed.review = reviewed.review.map((entry) => ({ ...entry, decision: 'deferred', reviewer: 'Reviewer' }));
     act(() => {
-      useResultsStore.setState({ results: reviewed });
       useResultsStore.getState().markArtifactExported('reports/assessment-report.md');
       useConfigStore.setState({ validation: ready });
     });
     expect(steps().every((step) => step.classList.contains('done'))).toBe(true);
-    expect(steps().map((step) => step.querySelector('.nav-step')?.textContent)).toEqual(['1', '2', '3', '4', '5', '6']);
+    expect(steps().map((step) => step.querySelector('.nav-step')?.textContent)).toEqual(['1', '2', '3', '4', '5']);
+    expect(screen.getByRole('button', { name: /5 Review & export/ })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: /6 Export/ })).not.toBeInTheDocument();
     expect(screen.getByRole('navigation')).not.toHaveTextContent('\u2713');
     for (const phase of ['collecting', 'failed', 'canceled'] as const) {
       act(() => useRunStore.setState({ phase }));

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import json
 import logging
@@ -23,6 +24,7 @@ from typing import Any
 from urllib.parse import quote, unquote, urlsplit
 
 from permission_setup import DatabricksSetupClient, PermissionSetupService, SetupError, workspace_host
+import capability_operations as capabilities
 
 
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -120,6 +122,10 @@ def resolve_default_config(assessment_root: Path) -> Path:
 def write_config(output_root: Path, config: dict[str, Any], purpose: str) -> Path:
     if not isinstance(config, dict):
         raise ApiError(HTTPStatus.BAD_REQUEST, "config must be a JSON object.")
+    try:
+        capabilities.validate_options(config.get("capabilities"))
+    except ValueError as exc:
+        raise ApiError(HTTPStatus.BAD_REQUEST, str(exc)) from exc
     state_root = contained_path(output_root, output_root / ".ui-server" / "configs")
     state_root.mkdir(parents=True, exist_ok=True)
     path = contained_path(state_root, state_root / f"{purpose}-{uuid.uuid4().hex}.json")
@@ -670,6 +676,11 @@ def workspace_name_map(config: dict[str, Any]) -> dict[str, str]:
     }
 
 
+def record_workspace(record: dict[str, Any]) -> str:
+    value = record["_value"]
+    return str(value.get("workspace_id") or value.get("workspaceId") or value.get("workspaceKey") or record["_scope"].get("workspaceKey") or "")
+
+
 def map_compute(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any]]:
     names = workspace_name_map(config)
     rows = []
@@ -680,8 +691,9 @@ def map_compute(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any]]:
         rows.append(
             {
                 "clusterId": str(value.get("cluster_id", "")),
+                "workspaceId": record_workspace(record),
                 "clusterName": str(value.get("cluster_name", "")),
-                "workspaceName": names.get(str(value.get("workspaceKey") or record["_scope"].get("workspaceKey")), ""),
+                "workspaceName": names.get(record_workspace(record), record_workspace(record)),
                 "source": str(value.get("cluster_source", "API")).upper(),
                 "state": str(value.get("state", "")),
                 "nodeTypeId": str(value.get("node_type_id", "")),
@@ -712,8 +724,9 @@ def map_warehouses(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any
         rows.append(
             {
                 "id": str(value.get("id", "")),
+                "workspaceId": record_workspace(record),
                 "name": str(value.get("name", "")),
-                "workspaceName": names.get(str(value.get("workspaceKey") or record["_scope"].get("workspaceKey")), ""),
+                "workspaceName": names.get(record_workspace(record), record_workspace(record)),
                 "size": str(value.get("cluster_size") or value.get("size") or ""),
                 "state": str(value.get("state", "")),
                 "serverless": bool(value.get("enable_serverless_compute")),
@@ -732,12 +745,12 @@ def map_warehouses(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any
 
 def map_workloads(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any]]:
     names = workspace_name_map(config)
-    run_counts: dict[str, int] = defaultdict(int)
-    failures: dict[str, int] = defaultdict(int)
-    durations: dict[str, list[float]] = defaultdict(list)
+    run_counts: dict[tuple[str, str], int] = defaultdict(int)
+    failures: dict[tuple[str, str], int] = defaultdict(int)
+    durations: dict[tuple[str, str], list[float]] = defaultdict(list)
     for record in normalized_values(run_root, "job_run.ndjson"):
         value = record["_value"]
-        job_id = str(value.get("job_id", ""))
+        job_id = (record_workspace(record), str(value.get("job_id", "")))
         run_counts[job_id] += 1
         result_state = str((value.get("state") or {}).get("result_state", "")).upper()
         if result_state and result_state != "SUCCESS":
@@ -749,7 +762,7 @@ def map_workloads(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any]
     rows = []
     for record in normalized_values(run_root, "job.ndjson"):
         value = record["_value"]
-        job_id = str(value.get("job_id", ""))
+        job_id = (record_workspace(record), str(value.get("job_id", "")))
         settings = value.get("settings") or {}
         samples = sorted(durations[job_id])
         count = run_counts[job_id]
@@ -758,9 +771,10 @@ def map_workloads(run_root: Path, config: dict[str, Any]) -> list[dict[str, Any]
         compute_type = "serverless" if settings.get("environments") else "job-cluster" if settings.get("job_clusters") else "all-purpose"
         rows.append(
             {
-                "jobId": job_id,
+                "jobId": job_id[1],
+                "workspaceId": job_id[0],
                 "jobName": str(settings.get("name", "")),
-                "workspaceName": names.get(str(value.get("workspaceKey") or record["_scope"].get("workspaceKey")), ""),
+                "workspaceName": names.get(job_id[0], job_id[0]),
                 "computeType": compute_type,
                 "runCount": count,
                 "failureRatePercent": round(failures[job_id] * 100 / count, 1) if count else None,
@@ -852,7 +866,7 @@ def map_cost(run_root: Path, config: dict[str, Any]) -> tuple[list[dict[str, Any
 def default_review(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
-            "findingId": str(item.get("detectorId", "")),
+            "findingId": str(item.get("findingId") or item.get("detectorId", "")),
             "finding": str(item.get("title", "")),
             "evidenceLinks": list(item.get("evidenceFiles") or []),
             "reviewer": "",
@@ -884,7 +898,7 @@ def list_exports(run_root: Path) -> list[dict[str, Any]]:
     ]
     reports = run_root / "reports"
     if reports.is_dir():
-        candidates.extend(path for path in reports.iterdir() if path.is_file() and path.suffix.lower() in {".md", ".csv", ".json"})
+        candidates.extend(path for path in reports.iterdir() if path.is_file() and path.suffix.lower() in {".md", ".csv", ".json", ".xlsx"})
     exports = []
     for path in sorted(candidates):
         relative = path.relative_to(run_root).as_posix()
@@ -923,13 +937,15 @@ def map_results(run_root: Path) -> dict[str, Any]:
     cost_drivers, cost_trend, cost_breakdown = map_cost(run_root, config)
     review_path = run_root / ".ui-review.json"
     review = read_json(review_path, default_review(findings))
+    reviewed_ids = {entry.get("findingId") for entry in review}
+    review += [entry for entry in default_review(findings) if entry["findingId"] not in reviewed_ids]
     roadmap = [
         {
             "horizon": ("0-30", "31-60", "61-90")[index % 3],
             "title": str(finding.get("title", "")),
             "detail": str(finding.get("recommendedAction", "")),
             "owner": "Unassigned",
-            "dependsOnFindingIds": [str(finding.get("detectorId", ""))],
+            "dependsOnFindingIds": [str(finding.get("findingId") or finding.get("detectorId", ""))],
         }
         for index, finding in enumerate(findings)
         if finding.get("status") == "candidate"
@@ -945,6 +961,21 @@ def map_results(run_root: Path) -> dict[str, Any]:
         if item.get("status") in {"partial", "failed", "pending telemetry"}
     ]
     report_path = run_root / "reports" / "assessment-report.md"
+    compute = map_compute(run_root, config)
+    warehouses = map_warehouses(run_root, config)
+    analysis = capabilities.load(run_root / "capability-analysis.json")
+    if analysis:
+        metrics = {(r["workspaceId"], r["resourceId"]): r for r in analysis["datasets"]["utilization"]}
+        for cluster in compute:
+            metric = metrics.get((cluster["workspaceId"], cluster["clusterId"]))
+            if metric:
+                cluster["idlePercent"] = metric["idlePercent"]
+        for warehouse in warehouses:
+            queries = [q for q in analysis["datasets"]["queries"] if q["workspaceId"] == warehouse["workspaceId"] and q.get("warehouseId") == warehouse["id"]]
+            if queries:
+                warehouse["queryCount"] = len(queries)
+                warehouse["p95QueueSeconds"] = capabilities.percentile([q["queueSeconds"] for q in queries if q["queueSeconds"] is not None])
+                warehouse["p95DurationSeconds"] = capabilities.percentile([q["durationSeconds"] for q in queries if q["durationSeconds"] is not None])
     return {
         "manifest": normalize_manifest(manifest_raw, config),
         "scopeFilter": read_json(
@@ -960,14 +991,17 @@ def map_results(run_root: Path) -> dict[str, Any]:
         "costDrivers": cost_drivers,
         "costTrend": cost_trend,
         "costBreakdown": cost_breakdown,
-        "compute": map_compute(run_root, config),
-        "warehouses": map_warehouses(run_root, config),
+        "compute": compute,
+        "warehouses": warehouses,
         "workloads": map_workloads(run_root, config),
         "roadmap": roadmap,
         "evidenceGaps": evidence_gaps,
         "review": review,
         "reportMarkdown": report_path.read_text(encoding="utf-8-sig") if report_path.is_file() else "",
         "exports": list_exports(run_root),
+        "capabilities": capabilities.summary(run_root),
+        "costAvailable": manifest_raw.get("costAvailable", True),
+        "parentRunId": manifest_raw.get("parentRunId"),
     }
 
 
@@ -988,7 +1022,7 @@ def run_summary(run_root: Path) -> dict[str, Any] | None:
         "startedAtUtc": str(manifest.get("startedAtUtc", "")),
         "completedAtUtc": manifest.get("completedAtUtc"),
         "analysisWindow": manifest.get("analysisWindow") or {},
-        "authoritativeCost": float(benefits.get("authoritativeCost") or reconciliation.get("authoritativeTotal") or 0),
+        "authoritativeCost": None if manifest.get("costAvailable") is False else float(benefits.get("authoritativeCost") or reconciliation.get("authoritativeTotal") or 0),
         "currency": str(benefits.get("currency") or reconciliation.get("currency") or (config.get("azure") or {}).get("currency", "")),
         "findingCount": len(candidates.get("findings") or []),
         "subscriptionIds": list(scope.get("subscriptionIds") or scope.get("subscriptions") or []),
@@ -1574,8 +1608,45 @@ class AssessmentRequestHandler(BaseHTTPRequestHandler):
         path = parsed.path
         service = self.server.service
 
+        capability_match = re.fullmatch(r"/api/runs/([^/]+)/capabilities/([a-z-]+)", path)
+        if method == "POST" and (path == "/api/capabilities/import" or capability_match):
+            self._permission_request_guard()
+            body = self._body()
+            try:
+                if path == "/api/capabilities/import":
+                    result = capabilities.import_evidence(service.output_root, body, preview=body.get("preview") is True)
+                else:
+                    root = resolve_run_root(service.output_root, unquote(capability_match.group(1)))
+                    action = capability_match.group(2)
+                    if action == "dataset":
+                        result = capabilities.dataset_page(root, body.get("dataset", ""), body)
+                    elif action == "reanalyze":
+                        result = capabilities.reanalyze(service.output_root, root, body.get("options", {}))
+                    elif action == "workbook":
+                        relative = capabilities.workbook(root, body.get("sheets", list(capabilities.MODULES)))
+                        result = {"relativePath": relative}
+                    elif action == "scenario":
+                        data = read_json(root / "capability-analysis.json")
+                        rows = capabilities.scoped_rows(data["datasets"]["commitments"], body)
+                        selection = body.get("resourceId")
+                        if selection:
+                            rows = [row for row in rows if row["resourceId"] == selection]
+                        result = capabilities.commitment_scenario(rows, body.get("quantity"))
+                        capabilities.save(root / "reports" / f"scenario-{capabilities.digest(result)}.json", result)
+                    elif action == "publish":
+                        with service.operation_lock:
+                            service.require_setup_idle()
+                            service.require_assessment_idle()
+                            result = capabilities.publish(root, body, service._permission_client)
+                    else:
+                        raise ApiError(HTTPStatus.NOT_FOUND, "Unknown capability operation.")
+            except (ValueError, TypeError, KeyError) as exc:
+                raise ApiError(HTTPStatus.BAD_REQUEST, str(exc)) from exc
+            self._json(HTTPStatus.OK, result)
+            return
+
         if method == "GET" and path == "/api/health":
-            self._json(HTTPStatus.OK, {"status": "ok", "serverVersion": "2026.09.28.9"})
+            self._json(HTTPStatus.OK, {"status": "ok", "serverVersion": "2026.09.29.1"})
             return
         if method == "GET" and path == "/favicon.ico":
             self.send_response(HTTPStatus.NO_CONTENT)
@@ -1681,6 +1752,11 @@ class AssessmentRequestHandler(BaseHTTPRequestHandler):
             run_root = resolve_run_root(service.output_root, unquote(match.group(1)))
             relative = unquote(match.group(2))
             artifact = resolve_artifact(run_root, relative)
+            if artifact.suffix.lower() == ".xlsx":
+                self._json(HTTPStatus.OK, {"relativePath": artifact.relative_to(run_root).as_posix(),
+                           "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           "encoding": "base64", "content": base64.b64encode(artifact.read_bytes()).decode("ascii")})
+                return
             try:
                 content = artifact.read_text(encoding="utf-8-sig")
             except (OSError, UnicodeDecodeError) as exc:

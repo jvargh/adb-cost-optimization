@@ -27,7 +27,7 @@ export function CostTab({ results }: { results: AssessmentResults }) {
   const slices = results.costBreakdown.filter((s) => s.dimension === dimension);
   const dimensionTotal = slices.reduce((total, s) => total + s.cost, 0);
 
-  if (results.reconciliation.authoritativeTotal <= 0) {
+  if (results.reconciliation.authoritativeTotal === null || results.reconciliation.authoritativeTotal <= 0) {
     return (
       <Callout tone="danger" title="No cost evidence for this run">
         Azure Cost Management could not be read for the selected scope, so no cost analysis can be

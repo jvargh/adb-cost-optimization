@@ -16,6 +16,7 @@ describe('saved snapshots', () => {
       disconnect() {}
     });
     setBackend(null);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     window.history.replaceState(null, '', '/');
     useConfigStore.getState().reset();
     useResultsStore.getState().clear();
@@ -23,6 +24,36 @@ describe('saved snapshots', () => {
     useRunStore.setState({ runs: [], runsError: null, loadingRuns: false });
   });
   afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); window.history.replaceState(null, '', '/'); });
+
+  it.each([true, false])('shows a persistent red/green saved outcome instead of gray, needs attention: %s', async (needsAttention) => {
+    const backend = getBackend();
+    const runs = await backend.listRuns();
+    const saved = structuredClone(await backend.loadResults(runs[0].runId));
+    saved.manifest.status = needsAttention ? 'partial' : 'passed';
+    saved.collection = [
+      { ...saved.collection[0], status: needsAttention ? 'partial' : 'passed', limitations: needsAttention ? ['Fixture missing evidence'] : [], error: '' },
+      { ...saved.collection[0], name: 'Optional source', status: 'skipped', limitations: ['Not selected'], error: '' },
+    ];
+    vi.spyOn(backend, 'loadResults').mockResolvedValue(saved);
+    const validate = vi.spyOn(backend, 'validate');
+    const start = vi.spyOn(backend, 'startRun');
+    window.history.replaceState(null, '', `/?run=${runs[0].runId}`);
+    const rendered = render(<App />);
+    await screen.findByText('Viewing a saved snapshot');
+    const expected = needsAttention ? 'attention' : 'done';
+    expect(screen.getByRole('button', { name: /2 Validate/ })).toHaveClass(expected);
+    expect(screen.getByRole('button', { name: /3 Run analysis/ })).toHaveClass(expected);
+    fireEvent.click(screen.getByRole('button', { name: /2 Validate/ }));
+    expect(screen.getByText(/^Assessment completed -/).closest('.callout')).toHaveClass(needsAttention ? 'callout-danger' : 'callout-ok');
+    expect(screen.getByText('Not selected')).toBeVisible();
+    rendered.unmount();
+    useResultsStore.getState().clear();
+    render(<App />);
+    await screen.findByText('Viewing a saved snapshot');
+    expect(screen.getByRole('button', { name: /2 Validate/ })).toHaveClass(expected);
+    expect(validate).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
+  });
 
   it('reopens a saved snapshot on reload without discovery, validation, or collection', async () => {
     const backend = getBackend();
@@ -76,8 +107,8 @@ describe('saved snapshots', () => {
     await screen.findByText('Viewing a saved snapshot');
     for (const step of [/1 Configure/, /2 Validate/, /3 Run analysis/]) {
       fireEvent.click(screen.getByRole('button', { name: step }));
-      await screen.findByText('Historical snapshot - no checks are running');
-      expect(screen.getByText('Saved collection checks')).toBeVisible();
+      await screen.findByText(/Assessment completed - (evidence needs attention|collected checks passed)/);
+      expect(screen.getByRole('heading', { name: 'Saved collection checks' })).toBeVisible();
       expect(screen.queryByRole('button', { name: 'Start read-only assessment' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Run validation' })).not.toBeInTheDocument();
       expect(screen.queryByText('Pipeline timeline permission setup')).not.toBeInTheDocument();
@@ -103,9 +134,9 @@ describe('saved snapshots', () => {
     fireEvent.change(screen.getByRole('combobox', { name: 'Saved snapshots' }), { target: { value: runs[0].runId } });
     await screen.findByText('Viewing a saved snapshot');
     expect(screen.queryByText('Validation finished - analysis has not started')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /2 Validate/ })).toHaveTextContent('Historical checks');
+    expect(screen.getByRole('button', { name: /2 Validate/ })).toHaveTextContent(/Saved checks (need attention|passed)/);
     fireEvent.click(screen.getByRole('button', { name: /2 Validate/ }));
-    await screen.findByText('Historical snapshot - no checks are running');
+    await screen.findByText(/Assessment completed - (evidence needs attention|collected checks passed)/);
     expect(validate).not.toHaveBeenCalled();
   });
 
@@ -131,6 +162,7 @@ describe('saved snapshots', () => {
       validationStartedAtUtc: '2026-09-01T00:00:00Z',
       validationLastResponseAtUtc: '2026-09-01T01:00:00Z',
     });
+
     useRunStore.setState({
       phase: 'completed', runId: runs[0].runId, error: 'Prior warning',
       console: [{ level: 'info', message: 'Prior run', atUtc: '' }],
@@ -142,7 +174,7 @@ describe('saved snapshots', () => {
       useResultsStore.getState().setFilter('search', 'prior filter');
       useResultsStore.getState().markArtifactExported('reports/assessment-report.md');
     });
-    fireEvent.click(screen.getByRole('button', { name: /Export Report and evidence/ }));
+    fireEvent.click(screen.getByRole('button', { name: /5 Review & export/ }));
     fireEvent.click(screen.getByRole('button', { name: 'New assessment' }));
     await screen.findByText('Scope determines everything downstream');
     const firstCustomerId = useConfigStore.getState().config!.customerId;

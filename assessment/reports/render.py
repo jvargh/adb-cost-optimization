@@ -180,7 +180,7 @@ def _findings_section(findings: list[dict[str, Any]], ids: set[str] | None = Non
     rows = []
     details = []
     for item in selected:
-        finding_id = str(item.get("detectorId", "unknown"))
+        finding_id = str(item.get("findingId") or item.get("detectorId", "unknown"))
         confidence = item.get("confidence", {})
         savings = item.get("estimatedSavings")
         savings_text = (
@@ -634,7 +634,7 @@ def render_reports(run_root: Path) -> list[Path]:
     for rank, item in enumerate(ranked, 1):
         backlog_rows.append((
             rank,
-            item.get("detectorId"),
+            item.get("findingId") or item.get("detectorId"),
             "Validation queue" if item.get("status") == "candidate" else "Evidence gap",
             item.get("status"),
             (item.get("confidence") or {}).get("level"),
@@ -654,7 +654,7 @@ def render_reports(run_root: Path) -> list[Path]:
         [("Backlog import", "../backlog-import.json"), ("Optimization candidates", "../optimization-candidates.json")],
     )
 
-    finding_ids = ", ".join(str(item.get("detectorId")) for item in ranked) or "None produced"
+    finding_ids = ", ".join(str(item.get("findingId") or item.get("detectorId")) for item in ranked) or "None produced"
     roadmap_body = (
         "## Days 0-30: validate evidence and ownership\n\n"
         f"- Review finding IDs: {finding_ids}.\n"
@@ -702,7 +702,7 @@ def render_reports(run_root: Path) -> list[Path]:
 
     signoff_rows = [
         (
-            item.get("detectorId"),
+            item.get("findingId") or item.get("detectorId"),
             item.get("title"),
             _finding_evidence_links(str(item.get("detectorId", ""))),
             "",

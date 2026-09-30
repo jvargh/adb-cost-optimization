@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-09-29T19:31:46.736841+00:00",
+  "results": [
+    {
+      "test": "Configure / validate / explicit start / persisted results",
+      "status": "PASS",
+      "boundary": "Synthetic cloud; production UI/API/pipeline"
+    },
+    {
+      "test": "Compute and SQL",
+      "status": "PASS"
+    },
+    {
+      "test": "Queries",
+      "status": "PASS"
+    },
+    {
+      "test": "Posture",
+      "status": "PASS"
+    },
+    {
+      "test": "Assets",
+      "status": "PASS"
+    },
+    {
+      "test": "Evidence quality",
+      "status": "PASS"
+    },
+    {
+      "test": "Query pagination and full-dataset warehouse summaries",
+      "status": "PASS"
+    },
+    {
+      "test": "Commitment saved-input scenario",
+      "status": "PASS"
+    },
+    {
+      "test": "Review save and valid binary workbook download",
+      "status": "PASS"
+    },
+    {
+      "test": "Publication plan and separate approval gate; no writes",
+      "status": "PASS"
+    },
+    {
+      "test": "Local import validation / analysis / saved snapshot / no-cost state",
+      "status": "PASS"
+    },
+    {
+      "test": "Child re-analysis preserves parent",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual light 1440px",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual light 768px",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual light 390px",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual dark 1440px",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual dark 768px",
+      "status": "PASS"
+    },
+    {
+      "test": "Visual dark 390px",
+      "status": "PASS"
+    }
+  ],
+  "browserErrors": [],
+  "liveCloudTested": false,
+  "nativeFixtureRun": "fixture-native-1790710298518007000"
+}

@@ -43,6 +43,16 @@ DATASET_MAP = {
     "account-budgets": "budget",
     "budgets-commitments": "budget",
     "policy-inventory": "policy",
+    "workspace-settings": "workspace_settings",
+    "metastore-assignment": "metastore",
+    "repos": "repos",
+    "notebooks": "notebooks",
+    "experiments": "experiments",
+    "serving-endpoints": "serving-endpoints",
+    "sql-alerts": "sql-alerts",
+    "genie-spaces": "genie-spaces",
+    "uc-volumes": "uc-volumes",
+    "commitment-demand": "commitment_demand",
 }
 
 ID_FIELDS = {

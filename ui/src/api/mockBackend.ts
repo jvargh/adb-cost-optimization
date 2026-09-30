@@ -201,6 +201,9 @@ class MockRunHandle implements RunHandle {
 }
 
 export class MockAssessmentBackend implements AssessmentBackend {
+  async capabilityOperation<T>(_runId: string | null, _action: string, _input: object): Promise<T> {
+    throw new Error('Capability evidence operations require the local production host. Demo fixtures do not simulate cloud publication or imports.');
+  }
   async previewPermissionSetup(): Promise<PermissionSetup> {
     throw new Error('Permission setup is unavailable in demo mode. No permissions were changed.');
   }

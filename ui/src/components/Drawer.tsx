@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 export function Drawer({
   open,
@@ -15,6 +15,22 @@ export function Drawer({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const container = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement;
+    const node = container.current;
+    const focusable = () => Array.from(node?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select, textarea, [tabindex="0"]') ?? []);
+    focusable()[0]?.focus();
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const elements = focusable(); const first = elements[0]; const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    node?.addEventListener('keydown', trap);
+    return () => { node?.removeEventListener('keydown', trap); if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const handler = (event: KeyboardEvent) => {
@@ -29,7 +45,7 @@ export function Drawer({
   return (
     <>
       <div className="drawer-scrim" onClick={onClose} />
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label={String(title)}>
+      <aside ref={container} className="drawer" role="dialog" aria-modal="true" aria-label={String(title)}>
         <header className="drawer-header">
           <div className="panel-header-text">
             <h3>{title}</h3>

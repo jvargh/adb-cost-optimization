@@ -25,6 +25,7 @@ from assessment.model.core import (
     telemetry_quality,
 )
 from assessment.reports import render_reports
+from assessment.model.capabilities import write_analysis
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -70,6 +71,13 @@ def run(config_path: Path, run_root: Path) -> int:
     _write_json(run_root / "scope-filter.json", scope_filter)
 
     reconciliation = reconcile_costs(datasets, config)
+    if config.get("evidenceOrigin") == "imported":
+        for field in ("authoritativeTotal", "collectedTotal", "matchedCost", "unmatchedCost", "excludedCost",
+                      "allocatedSharedCost", "varianceAmount", "variancePercent", "databricksListPriceEstimate"):
+            reconciliation[field] = None
+        reconciliation["withinTolerance"] = None
+        reconciliation["authoritativeTotals"] = {}
+        reconciliation["limitations"].append("Imported evidence contains no authoritative Azure cost. Amounts are unavailable, not zero.")
     quality = telemetry_quality(inventory, datasets)
     reporting_basis = reconciliation.get("reportingBasis", "ActualCost")
     reporting_datasets = dict(datasets)
@@ -79,6 +87,8 @@ def run(config_path: Path, run_root: Path) -> int:
     ]
     attribution = attribution_coverage(reporting_datasets)
     findings = run_detectors(reporting_datasets, config)
+    capability_analysis = write_analysis(run_root, datasets, config)
+    findings.extend(capability_analysis["findings"])
     candidates = {
         "schemaVersion": MODEL_VERSION,
         "analysisWindow": manifest.get("analysisWindow", config.get("analysis")),
@@ -89,7 +99,7 @@ def run(config_path: Path, run_root: Path) -> int:
     backlog = {
         "schemaVersion": MODEL_VERSION,
         "items": [{
-            "externalId": item["detectorId"],
+            "externalId": item.get("findingId") or item["detectorId"],
             "title": item["title"],
             "type": "optimization" if item["status"] == "candidate" else "evidence-gap",
             "status": "proposed",

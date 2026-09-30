@@ -25,7 +25,7 @@ function Invoke-DatabricksGovernanceCollector {
         $timeParameters = New-DatabricksTimeParameters -Config $Config
         foreach ($source in @(
             Invoke-DatabricksSqlDatasetCollection -Config $Config -RunContext $RunContext -Workspace $workspace -Source 'billing attribution tags' -FileName 'DatabricksGovernanceTags.sql' -OutputName 'governance-tags' -Parameters $timeParameters
-            Invoke-DatabricksSqlDatasetCollection -Config $Config -RunContext $RunContext -Workspace $workspace -Source 'system.access.audit governance events' -FileName 'DatabricksGovernanceAudit.sql' -OutputName 'governance-audit' -Parameters $timeParameters
+            Invoke-DatabricksSqlDatasetCollection -Config $Config -RunContext $RunContext -Workspace $workspace -Source 'system.access.audit governance events' -FileName 'DatabricksGovernanceAudit.sql' -OutputName 'governance-audit' -Parameters $timeParameters -SplitOversizedWindow
         )) {
             $sources.Add($source)
             if ($source.output) { $outputs.Add($source.output) }

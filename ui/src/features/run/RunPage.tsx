@@ -3,6 +3,7 @@ import { Badge, Callout, KeyValue, Panel, StatusBadge, WorkflowNextStep } from '
 import { useConfigStore, useRunStore, PHASE_ORDER, phaseIndex } from '@/state';
 import { STATUS_MEANING, formatDateTime, elapsedBetween, formatNumber } from '@/lib/format';
 import type { CollectionSource, RunPhase } from '@/types';
+import { getCollectionOutcome } from '@/features/results/CollectionOutcome';
 
 const PHASE_LABELS: Record<string, string> = {
   preflight: 'Pre-flight',
@@ -37,6 +38,7 @@ export function RunPage({ onViewResults, onValidate }: { onViewResults: (runId: 
 
   const running = phase !== 'idle' && phase !== 'completed' && phase !== 'failed' && phase !== 'canceled';
   const included = config.databricks.workspaces.filter((w) => w.include);
+  const outcome = getCollectionOutcome({ manifest: { status: 'passed' }, collection: sources });
 
   return (
     <div className="stack-lg">
@@ -83,6 +85,9 @@ export function RunPage({ onViewResults, onValidate }: { onViewResults: (runId: 
                 value: `${config.analysis.startUtc} to ${config.analysis.endUtc} (${config.analysis.timeZone})`,
               },
               { label: 'Cost basis', value: config.azure.costBasis.join(' + ') },
+              { label: 'Analysis modules', value: config.capabilities?.modules.join(', ') ?? 'Standard capability analysis' },
+              { label: 'Collection profile / concurrency', value: `${config.capabilities?.profile ?? 'standard'} / ${config.capabilities?.concurrency ?? 1}` },
+              { label: 'Optional asset types', value: config.capabilities?.assets.join(', ') || 'Not selected' },
               { label: 'Output root', value: <span className="mono">{config.outputs.root}</span> },
               {
                 label: 'SQL Warehouse auto-start',
@@ -133,7 +138,7 @@ export function RunPage({ onViewResults, onValidate }: { onViewResults: (runId: 
               </Callout>
             )}
             {phase === 'completed' && runId && (
-              <Callout tone={sources.some((s) => ['failed', 'partial', 'pending telemetry'].includes(s.status)) ? 'warn' : 'ok'} title="Assessment finished - snapshot saved">
+              <Callout tone={outcome.needsAttention ? 'danger' : 'ok'} title="Assessment finished - snapshot saved">
                 Run <span className="mono">{runId}</span> finished with{' '}
                 {sources.filter((s) => s.status === 'passed').length} of {sources.length} sources
                 fully passed. Scope, evidence, findings, and report are saved automatically. Use Saved snapshots to reopen this run without collecting again.

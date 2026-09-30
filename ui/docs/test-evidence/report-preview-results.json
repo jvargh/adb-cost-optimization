@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-29T19:57:40.098735+00:00",
+  "status": "PASS",
+  "checks": [
+    "light/1440: report rendered, preview focused at scroll target, no page overflow",
+    "dark/1440: report rendered, preview focused at scroll target, no page overflow",
+    "light/390: report rendered, preview focused at scroll target, no page overflow",
+    "All 17 contents links resolve, including legacy punctuation",
+    "Contents click scrolls and focuses the section without navigating away",
+    "Supporting CSV opens as a local plain-text preview"
+  ],
+  "browserErrors": [],
+  "externalRequests": [],
+  "writeRequests": [],
+  "boundary": "Production UI/API/report pipeline; isolated synthetic evidence, no cloud access"
+}

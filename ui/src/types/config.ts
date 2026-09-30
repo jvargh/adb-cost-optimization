@@ -89,6 +89,7 @@ export interface OutputConfig {
 }
 
 export interface AssessmentConfig {
+  capabilities?: import('./capabilities').CapabilityOptions;
   customerId: string;
   assessmentId: string;
   azure: AzureScopeConfig;

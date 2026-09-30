@@ -1,0 +1,39 @@
+{
+  "boundary": "Synthetic collection; production UI, API and persisted snapshots",
+  "checks": [
+    {
+      "outcome": "red",
+      "theme": "light",
+      "reloadPreserved": true,
+      "skipped": 4,
+      "background": "rgba(220, 38, 38, 0.09)",
+      "screenshot": "source-outcome-red-light.png"
+    },
+    {
+      "outcome": "red",
+      "theme": "dark",
+      "reloadPreserved": true,
+      "skipped": 4,
+      "background": "rgba(248, 113, 113, 0.13)",
+      "screenshot": "source-outcome-red-dark.png"
+    },
+    {
+      "outcome": "green",
+      "theme": "light",
+      "reloadPreserved": true,
+      "skipped": 4,
+      "background": "rgba(22, 163, 74, 0.1)",
+      "screenshot": "source-outcome-green-light.png"
+    },
+    {
+      "outcome": "green",
+      "theme": "dark",
+      "reloadPreserved": true,
+      "skipped": 4,
+      "background": "rgba(74, 222, 128, 0.12)",
+      "screenshot": "source-outcome-green-dark.png"
+    }
+  ],
+  "pageErrors": [],
+  "browserWriteRequests": []
+}

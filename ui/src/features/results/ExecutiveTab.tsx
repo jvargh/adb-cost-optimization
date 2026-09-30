@@ -5,7 +5,7 @@ import type { AssessmentResults, CollectionSource } from '@/types';
 
 export function ExecutiveTab({ results }: { results: AssessmentResults }) {
   const { reconciliation, attribution, telemetry, candidates, benefits, collection } = results;
-  const costAvailable = reconciliation.authoritativeTotal > 0;
+  const costAvailable = reconciliation.authoritativeTotal !== null && reconciliation.authoritativeTotal > 0;
   const currency = reconciliation.currency;
 
   const degraded = collection.filter((s) => s.status !== 'passed' && s.status !== 'skipped');
@@ -124,7 +124,7 @@ export function ExecutiveTab({ results }: { results: AssessmentResults }) {
               <Row label="Shared cost allocated" value={formatMoney(reconciliation.allocatedSharedCost, currency)} />
               <Row
                 label="Variance"
-                value={`${formatMoney(reconciliation.varianceAmount, currency)} (${formatPercent(reconciliation.variancePercent / 100)})`}
+                value={`${formatMoney(reconciliation.varianceAmount, currency)} (${formatPercent(reconciliation.variancePercent === null ? null : reconciliation.variancePercent / 100)})`}
               />
               <Callout tone={reconciliation.withinTolerance ? 'ok' : 'warn'}>
                 {reconciliation.withinTolerance

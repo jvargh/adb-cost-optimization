@@ -62,6 +62,9 @@ export interface Confidence {
 export type EvidenceRecord = Record<string, string | number | boolean | null>;
 
 export interface Finding {
+  findingId?: string;
+  domain?: string;
+  ruleVersion?: string;
   schemaVersion: string;
   detectorId: string;
   title: string;
@@ -82,6 +85,7 @@ export interface Finding {
 }
 
 export interface FindingScope {
+  workspaceId?: string;
   subscriptionId: string | null;
   resourceGroup: string | null;
   workspaceName: string | null;

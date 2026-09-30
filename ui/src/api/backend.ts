@@ -19,6 +19,7 @@ import type {
  * visualizes.
  */
 export interface AssessmentBackend {
+  capabilityOperation<T>(runId: string | null, action: string, input: object): Promise<T>;
   readonly id: string;
   readonly isMock: boolean;
 
@@ -99,6 +100,7 @@ export interface RunApprovals {
 }
 
 export interface ArtifactPayload {
+  encoding?: 'base64';
   relativePath: string;
   mimeType: string;
   content: string;

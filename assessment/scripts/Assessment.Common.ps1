@@ -5,7 +5,8 @@ $script:DatabricksApplicationId = '2ff814a6-3304-4ab8-85cb-cd0e6f879c1d'
 $script:AllowedDatabricksMethods = @('GET', 'POST')
 $script:AllowedDatabricksPostPaths = @(
     '/api/2.0/sql/statements',
-    '/api/2.0/clusters/events'
+    '/api/2.0/clusters/events',
+    '/api/2.0/mlflow/experiments/search'
 )
 
 function Get-AssessmentCollectorPlan {
@@ -23,6 +24,7 @@ function Get-AssessmentCollectorPlan {
         @{ id = 'db-catalog'; title = 'Unity Catalog'; domain = 'Databricks'; command = 'Invoke-DatabricksUnityCatalogCollector' }
         @{ id = 'db-governance'; title = 'Databricks governance'; domain = 'Databricks'; command = 'Invoke-DatabricksGovernanceCollector' }
         @{ id = 'db-spark'; title = 'Spark performance evidence'; domain = 'Databricks'; command = 'Invoke-DatabricksSparkDeepDiveCollector' }
+        @{ id = 'db-assets'; title = 'Optional Databricks assets'; domain = 'Databricks'; command = 'Invoke-DatabricksAssetsCollector' }
     )
 }
 

@@ -1,7 +1,7 @@
 # Azure Databricks Cost Optimization — UI
 
 > **Production UI.** This app runs the complete journey — Configure → Validate → Run
-> Analysis → Monitor → Visualize → Review → Export — over the existing PowerShell/Python
+> analysis → Visualize results → Review & export — over the existing PowerShell/Python
 > assessment toolkit. An explicit `?mock=1` mode retains the approved deterministic demo.
 
 The UI is an orchestration and visualization layer over the existing read-only toolkit,
@@ -9,7 +9,19 @@ not a second assessment engine. The collectors also emit optional progress event
 UI; their evidence and assessment logic remain in [`assessment/`](../assessment).
 
 The authoritative behavioural baseline is
-[AzureDatabricksCostOptimizationEndToEndSpecification.md](../AzureDatabricksCostOptimizationEndToEndSpecification.md).
+[AzureDatabricksCostOptimizationEndToEndSpecification.md](../docs/AzureDatabricksCostOptimizationEndToEndSpecification.md).
+
+## New capability workflows
+
+Read the [UI user guide](USER-GUIDE.md) for utilization, sizing, job/query/network analysis,
+posture, assets, offline import, versioned re-analysis, commitments, XLSX and optional
+dashboard publication. The [test plan and recorded results](docs/capabilities-test-plan.md)
+include Playwright screenshots and distinguish synthetic, saved-native and live checks.
+
+Assessment remains read-only. Optional dashboard publication is a separate, explicitly
+confirmed cloud write and currently publishes coverage counts only. Posture currently
+contains two supported checks, not a full compliance catalog. See the guide's boundaries.
+Restart an idle local host after updating backend files; frontend rebuild alone is insufficient.
 
 ---
 
@@ -69,12 +81,15 @@ disabled states.
 Informational callouts use neutral surfaces, borders, and icons rather than the
 rose action accent. Warning callouts remain amber and error callouts remain red.
 
-Workflow steps stay gray until complete, then turn green; step numbers never become
+Workflow steps stay gray while uncompleted, turn green for successful completion,
+and red when completed validation/collection needs attention. Step numbers never become
 checkmarks. An outline identifies the page being viewed without implying completion.
-Configure completes when its local fields and scope are valid; Validate only after
-backend readiness allows the run. Run analysis completes when collection finishes
-(including partial evidence), Visualize when results load, Review when every finding
-has a decision and reviewer, and Export after a download. Warnings remain visible.
+Configure completes when its local fields and scope are valid; live Validate uses
+backend readiness. Completed collection with partial/failed/pending or unrecorded
+source evidence is red, not a green success. Intentional skips alone do not fail a run.
+Visualize completes when results load; the combined Review & export step completes
+after a download. Its collapsed, optional review records a selected finding's decision,
+reviewer and note without requiring full sign-off before export. Warnings remain visible.
 
 Selecting a subscription, or first loading a setup with a subscription already selected,
 automatically selects its discovered resource groups containing Azure Databricks workspaces
@@ -130,9 +145,12 @@ them as customer data. Incomplete or missing artifacts are reported as errors ra
 than reconstructed by silently collecting again.
 
 While a snapshot is selected, Configure, Validate, and Run show its **historical scope
-and collection checks**, not the current setup or a live progress screen. Older runs do
-not contain a separate pre-run validation report; the UI does not manufacture one or
-run validation to replace it. An independently started live operation is labeled separately.
+and collection checks**, not the current setup or a live progress screen. The final
+green/red banner and the saved Validate/Run indicators reflect recorded collection
+outcomes, with separate passed/partial/failed/pending/skipped counts. Validate is
+labeled **Saved collection checks**, not pre-flight. Older runs do not contain a separate
+pre-run validation report; the UI does not manufacture one or run validation to replace it.
+An independently started live operation is labeled separately.
 Choose **New assessment** to leave history and configure fresh collection.
 
 **Manage snapshots**, next to the dropdown, supports **Delete snapshot** for one run and
@@ -155,6 +173,12 @@ Validation starts only from **Validate configuration**, **Run validation**, or a
 retry/re-run button. Opening Step 2, changing scope/approvals, selecting a snapshot, or
 refreshing a snapshot URL never starts it automatically. Changes invalidate readiness
 and require another explicit validation before a new run.
+
+Step 2 keeps approvals and **Run/Retry/Re-run validation** above the progress and results.
+The start control stays in place while validation runs, disabled as **Validation running...**;
+approvals are also locked during live validation or permission setup. Only **Continue to run**
+is below the validation and permission panels. This keeps progress beneath the initiating
+action and the next-stage action after the checks.
 
 **Re-run validation** asks for confirmation before replacing the current checks and starting
 again. Cancel keeps the results and **Continue to run** available. Returning from Configure
@@ -207,8 +231,9 @@ assessment. It is unavailable in historical snapshots and demo mode.
 6. After grants succeed, explicitly run validation again. Setup never starts validation
    or an assessment automatically.
 
-The green access result includes **Next: full validation, then assessment**, with
-**Run/Re-run validation** and **Continue to run** controls. Pipeline-table access alone does
+The green access result includes **Next: full validation, then assessment** guidance.
+Use **Run/Re-run validation** above the progress area, then **Continue to run** beneath
+the permission panel. Pipeline-table access alone does
 not unlock collection: continuation requires full validation to allow it. If validation
 is already running, the panel says so and prevents a duplicate request. Re-running an
 existing report still requires confirmation. Continue opens step 3, where **Start read-only
@@ -334,7 +359,7 @@ any screen, or from the **Demo scenarios** panel on Configure and Visualize resu
 ### 1. `Contoso — multi-subscription estate (partial)` — the default, and the realistic case
 
 Four workspaces across three subscriptions. Several collectors return `partial` or
-`pending telemetry`. Start here and walk all six steps.
+`pending telemetry`. Start here and walk all five steps.
 
 - **Configure** — pick subscriptions and resource groups, set the analysis window and cost
   basis, choose deep-dive targets and the output root. The SQL Warehouse field is
@@ -348,15 +373,14 @@ Four workspaces across three subscriptions. Several collectors return `partial` 
 - **Monitor** — the live console streams per-source status. Note the summary line
   ("23 of 37 sources fully passed") and that `partial`, `pending telemetry` and `skipped`
   are each rendered distinctly rather than collapsed into "error".
-- **Visualize results** — six tabs. Open **Findings**, click any row for the evidence
+- **Visualize results** — grouped overview, technical, and decision views. Open **Findings**, click any row for the evidence
   drawer, then open **Filters** and apply a workspace chip: the Findings tab badge recounts
   to match the filtered set, and estate-wide findings correctly drop out of a
   workspace-scoped view.
-- **Review** — record accept / defer / reject with a rationale per finding. Nothing about
-  the analysis changes; the decision is recorded alongside it.
-- **Export** — the consolidated Markdown report (17 sections) plus the three CSVs. The
-  Markdown preview renders inline so a reviewer can read the deliverable without leaving
-  the app.
+- **Review & export** — download or preview the consolidated report immediately,
+  alongside supporting artifacts and optional workbook generation. A collapsed
+  **Record a decision** form edits a selected finding, reviewer and optional note.
+  Downloads do not require review and do not approve pending findings.
 
 ### 2. `Contoso — single workspace (all sources passed)`
 

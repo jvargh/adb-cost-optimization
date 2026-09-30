@@ -218,7 +218,8 @@ function Invoke-DatabricksPagedPost {
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][hashtable]$Body,
         [Parameter(Mandatory)][string]$ItemsProperty,
-        [string]$ContinuationProperty = 'next_page'
+        [string]$ContinuationProperty = 'next_page',
+        [string]$TokenParameter
     )
 
     $maxPages = [int](Get-DatabricksAnalysisSetting -Config $Config -Name 'maxPages' -Default 100)
@@ -235,10 +236,14 @@ function Invoke-DatabricksPagedPost {
             }
         }
         $continuation = Get-DatabricksProperty -InputObject $response -Name $ContinuationProperty
+        if ($TokenParameter -and [string]::IsNullOrWhiteSpace([string]$continuation)) { $continuation = $null }
         if ($null -ne $continuation) {
-            foreach ($property in $continuation.PSObject.Properties) {
-                $requestBody[$property.Name] = $property.Value
+            if ($TokenParameter) {
+                $requestBody[$TokenParameter] = $continuation
             }
+            else { foreach ($property in $continuation.PSObject.Properties) {
+                $requestBody[$property.Name] = $property.Value
+            } }
         }
     } while ($null -ne $continuation -and $page -lt $maxPages)
 
@@ -303,12 +308,23 @@ function Protect-DatabricksAssessmentValue {
         $PropertyName -match '(?i)^(query_text|statement_text|queryText|statement)$') {
         return '[omitted]'
     }
+    if ($PropertyName -eq 'email_notifications' -and ($Value -is [Collections.IDictionary] -or $Value -is [pscustomobject])) {
+        $copy = [ordered]@{}
+        $keys = if ($Value -is [Collections.IDictionary]) { @($Value.Keys) } else { @($Value.PSObject.Properties | ForEach-Object { $_.Name }) }
+        foreach ($key in $keys) {
+            if ($key -like 'on_*') {
+                $copy[$key] = @($Value.$key | ForEach-Object { Protect-DatabricksAssessmentValue -Value $_ -Config $Config -PropertyName 'email' })
+            }
+            else { $copy[$key] = Protect-DatabricksAssessmentValue -Value $Value.$key -Config $Config -PropertyName $key }
+        }
+        return [pscustomobject]$copy
+    }
     if ([bool](Get-DatabricksProperty -InputObject $redaction -Name 'hashIdentities' -Default $true) -and
         $PropertyName -match '(?i)(owner|creator|user_name|userName|executed_by|run_as|service_principal|email|identity)') {
         return Get-AssessmentHash -Value ([string]$Value) -Config $Config
     }
     if ([bool](Get-DatabricksProperty -InputObject $redaction -Name 'hashNotebookPaths' -Default $true) -and
-        $PropertyName -match '(?i)(notebook_path|notebookPath)') {
+        $PropertyName -match '(?i)(notebook_path|notebookPath|^path$|^url$|storage_location)') {
         return Get-AssessmentHash -Value ([string]$Value) -Config $Config
     }
     if ([bool](Get-DatabricksProperty -InputObject $redaction -Name 'hashTableNames' -Default $false) -and
@@ -330,7 +346,7 @@ function Protect-DatabricksAssessmentValue {
         return [pscustomobject]$copy
     }
     if ($Value -is [Collections.IEnumerable] -and $Value -isnot [string]) {
-        return @($Value | ForEach-Object { Protect-DatabricksAssessmentValue -Value $_ -Config $Config -PropertyName $PropertyName })
+        return ,@($Value | ForEach-Object { Protect-DatabricksAssessmentValue -Value $_ -Config $Config -PropertyName $PropertyName })
     }
     return $Value
 }
@@ -507,7 +523,7 @@ function Invoke-DatabricksSqlQuery {
         statementId = $statementId
         rows = @($rows)
         pages = $pages
-        truncated = -not [string]::IsNullOrWhiteSpace($nextChunk)
+        truncated = -not [string]::IsNullOrWhiteSpace($nextChunk) -or [bool](Get-DatabricksProperty -InputObject $manifest -Name 'truncated' -Default $false)
     }
 }
 
@@ -584,6 +600,60 @@ function New-DatabricksTimeParameters {
     )
 }
 
+function Invoke-DatabricksWindowedSqlFile {
+    param(
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][object]$Workspace,
+        [Parameter(Mandatory)][string]$FileName,
+        [Parameter(Mandatory)][object[]]$Parameters
+    )
+
+    $startParameter = @($Parameters | Where-Object { $_.name -eq 'start_utc' })
+    $endParameter = @($Parameters | Where-Object { $_.name -eq 'end_utc' })
+    if ($startParameter.Count -ne 1 -or $endParameter.Count -ne 1) { throw 'Windowed SQL requires exactly one start_utc and end_utc parameter.' }
+    $start = [DateTimeOffset]::Parse([string]$startParameter[0].value).ToUniversalTime()
+    $end = [DateTimeOffset]::Parse([string]$endParameter[0].value).ToUniversalTime()
+    if ($end -le $start) { throw 'Windowed SQL requires an end time after the start time.' }
+    $remaining = [Collections.Generic.Stack[object]]::new()
+    $remaining.Push(@{ Start = $start; End = $end })
+    $rows = [Collections.Generic.List[object]]::new()
+    $attempts = 0
+    $limit = [int](Get-DatabricksAnalysisSetting -Config $Config -Name 'maxPages' -Default 100)
+    $truncated = $false
+    while ($remaining.Count -gt 0 -and $attempts -lt $limit) {
+        $window = $remaining.Pop()
+        $windowParameters = @($Parameters | ForEach-Object {
+            if ($_.name -in @('start_utc', 'end_utc')) {
+                $value = if ($_.name -eq 'start_utc') { $window.Start } else { $window.End }
+                @{ name = $_.name; type = 'TIMESTAMP'; value = $value.ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [Globalization.CultureInfo]::InvariantCulture) }
+            }
+            else { $_ }
+        })
+        $attempts++
+        try {
+            $result = Invoke-DatabricksSqlFile -Config $Config -Workspace $Workspace -FileName $FileName -Parameters $windowParameters
+            foreach ($row in @($result.rows)) { $rows.Add($row) }
+            $truncated = $truncated -or $result.truncated
+        }
+        catch {
+            if ($_.Exception.Message -notmatch '(?i)Inline byte limit exceeded') { throw }
+            $halfMilliseconds = [math]::Floor(($window.End - $window.Start).TotalMilliseconds / 2)
+            if ($halfMilliseconds -lt 1) { throw 'Audit SQL exceeds the inline byte limit even within a one-millisecond window; evidence is incomplete.' }
+            $middle = $window.Start.AddMilliseconds($halfMilliseconds)
+            Write-Warning 'Audit SQL exceeded the inline byte limit. Retrying smaller, non-overlapping time windows within the configured request bound.'
+            $remaining.Push(@{ Start = $middle; End = $window.End })
+            $remaining.Push(@{ Start = $window.Start; End = $middle })
+        }
+    }
+    return [pscustomobject]@{
+        rows = @($rows)
+        truncated = $truncated -or $remaining.Count -gt 0
+        message = if ($remaining.Count -gt 0) { "The audit window request limit ($limit) was reached; some time ranges remain uncollected." }
+            elseif ($truncated) { 'A SQL result was truncated; audit evidence is incomplete.' }
+            else { "Collected the full requested time window using $attempts bounded SQL request(s)." }
+    }
+}
+
 function Invoke-DatabricksSqlDatasetCollection {
     param(
         [Parameter(Mandatory)][object]$Config,
@@ -592,17 +662,22 @@ function Invoke-DatabricksSqlDatasetCollection {
         [Parameter(Mandatory)][string]$Source,
         [Parameter(Mandatory)][string]$FileName,
         [Parameter(Mandatory)][string]$OutputName,
-        [object[]]$Parameters = @()
+        [object[]]$Parameters = @(),
+        [switch]$SplitOversizedWindow
     )
 
     if ([string]::IsNullOrWhiteSpace((Get-DatabricksSqlWarehouseId -Config $Config -Workspace $Workspace))) {
         return New-DatabricksSourceStatus -Source $Source -Status 'pending telemetry' -Message 'A SQL Warehouse ID is required to read this source.'
     }
     try {
-        $result = Invoke-DatabricksSqlFile -Config $Config -Workspace $Workspace -FileName $FileName -Parameters $Parameters
+        $result = if ($SplitOversizedWindow) {
+            Invoke-DatabricksWindowedSqlFile -Config $Config -Workspace $Workspace -FileName $FileName -Parameters $Parameters
+        }
+        else { Invoke-DatabricksSqlFile -Config $Config -Workspace $Workspace -FileName $FileName -Parameters $Parameters }
         $output = Write-DatabricksDataset -Config $Config -RunContext $RunContext -Workspace $Workspace -Name $OutputName -Items @($result.rows)
         $status = if ($result.truncated) { 'partial' } else { 'passed' }
-        $message = if ($result.truncated) { 'The configured page limit was reached; the continuation was not discarded silently.' } else { $null }
+        $message = if ($SplitOversizedWindow) { $result.message }
+            elseif ($result.truncated) { 'The SQL result or configured page limit was reached; evidence is incomplete.' } else { $null }
         return New-DatabricksSourceStatus -Source $Source -Status $status -ItemCount @($result.rows).Count -Output $output -Message $message
     }
     catch {
