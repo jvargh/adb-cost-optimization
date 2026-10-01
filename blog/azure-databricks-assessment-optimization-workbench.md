@@ -41,13 +41,16 @@ The UI guides you from choosing what to assess to downloading a report. First, s
 
 ### Configure
 
+This step defines what the assessment will cover: which workspaces to review, the date range, and the data to collect. These choices prepare the assessment; they do not start collection.
+
 ![Configure discovering the estate, selecting subscriptions and resource groups, choosing workspace warehouses, and reviewing the time window before validation.](assets/01-configure.gif)
 
-Start by choosing which subscriptions, resource groups, and Databricks workspaces to review, along with the date range. **ActualCost** shows charges as recorded; **AmortizedCost** spreads eligible commitment costs over time.
+The GIF shows the scope selection, warehouse choices, and date settings before moving to validation.
 
-Choose **Standard** for core assessment data, **Extended** to include workspace asset details, or **Custom** to select the optional data you need.
-
-The GIF shows this setup moving into validation. Select a SQL Warehouse to read Databricks system tables, but remember that running queries can incur charges. The UI asks for approval before automatically starting a stopped warehouse.
+*   **Select the scope:** choose the subscriptions, resource groups, and Databricks workspaces to include.
+*   **Set the dates and cost basis:** choose the period to assess. **ActualCost** shows charges as recorded; **AmortizedCost** spreads eligible commitment costs over time.
+*   **Choose the collection profile:** use **Standard** for core assessment data, **Extended** to include workspace asset metadata, or **Custom** to select optional data and analysis modules.
+*   **Select SQL Warehouses:** choose a warehouse for each workspace that needs system-table queries. Selection does not start compute. Queries can incur charges, so warehouse use requires approval in Validate.
 
 **Next:** Select **Validate configuration**.
 
